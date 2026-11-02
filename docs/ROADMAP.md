@@ -3,7 +3,8 @@
   - [x] Git, CLAUDE.md and product documents reviewed
   - [x] ADR-001/002 confirmed; ADR for revisions and 3D boundary recorded
   - [x] Format, lint, typecheck, test and CI baseline configured
-  - [ ] Remote GitHub repository and protected `main` branch configured
+  - [x] Remote GitHub repository configured as `origin`
+  - [ ] Protected `main` branch configured on GitHub
   - [x] Environments, secret ownership and staging/production access documented
 - [ ] Stage 1: Next.js app shell, auth, database, projects CRUD, staging
 - [ ] Stage 2: versioned game schema, rules/board/cards/assets, preview
