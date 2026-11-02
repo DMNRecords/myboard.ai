@@ -1,0 +1,15 @@
+# Existing product documents have their own authoring conventions.
+.claude/
+docs/
+CLAUDE.md
+README_START_HERE.md
+
+# Generated or third-party files.
+.git/
+.pnpm-store/
+node_modules/
+pnpm-lock.yaml
+MYBOARD_AI_TZ_v3.docx
+coverage/
+playwright-report/
+test-results/

@@ -1,0 +1,14 @@
+# Roadmap
+- [ ] Stage 0: preparation
+  - [x] Git, CLAUDE.md and product documents reviewed
+  - [x] ADR-001/002 confirmed; ADR for revisions and 3D boundary recorded
+  - [x] Format, lint, typecheck, test and CI baseline configured
+  - [ ] Remote GitHub repository and protected `main` branch configured
+  - [ ] Environments, secret ownership and staging/production access documented
+- [ ] Stage 1: Next.js app shell, auth, database, projects CRUD, staging
+- [ ] Stage 2: versioned game schema, rules/board/cards/assets, preview
+- [ ] Stage 3: AI adapter, chat, structured generation, moderation, quotas
+- [ ] Stage 4: print profile, PDF renderer, export validation, entitlement gate
+- [ ] Stage 5: Free/Creator, payments/webhooks, admin, audit
+- [ ] Stage 6: closed beta, user feedback, cost/quality review
+- [ ] Stage 7 (future): MYBOARD STUDIO 3D provider spike, printable-mesh POC, separate approval

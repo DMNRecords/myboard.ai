@@ -1,0 +1,5 @@
+# Keep repository text deterministic across Windows and CI.
+* text=auto eol=lf
+
+# Binary source document.
+*.docx binary
