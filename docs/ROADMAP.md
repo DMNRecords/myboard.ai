@@ -4,7 +4,7 @@
   - [x] ADR-001/002 confirmed; ADR for revisions and 3D boundary recorded
   - [x] Format, lint, typecheck, test and CI baseline configured
   - [ ] Remote GitHub repository and protected `main` branch configured
-  - [ ] Environments, secret ownership and staging/production access documented
+  - [x] Environments, secret ownership and staging/production access documented
 - [ ] Stage 1: Next.js app shell, auth, database, projects CRUD, staging
 - [ ] Stage 2: versioned game schema, rules/board/cards/assets, preview
 - [ ] Stage 3: AI adapter, chat, structured generation, moderation, quotas
