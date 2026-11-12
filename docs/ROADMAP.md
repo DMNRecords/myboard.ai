@@ -10,6 +10,7 @@
   - [x] Next.js app shell, Supabase SSR auth and password recovery
   - [x] Supabase project, `game_projects` migration, RLS and owner-only CRUD
   - [x] Live local verification: signup, authenticated projects CRUD and RLS
+  - [x] Vercel project connected to the GitHub repository
   - [ ] Select hosting and deploy a separate staging environment
 - [ ] Stage 2: versioned game schema, rules/board/cards/assets, preview
 - [ ] Stage 3: AI adapter, chat, structured generation, moderation, quotas
