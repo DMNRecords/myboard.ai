@@ -560,6 +560,28 @@ textarea {
   margin: 0 auto 1.5rem;
 }
 
+.print-profile-switcher {
+  display: flex;
+  max-width: 920px;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: -0.8rem auto 1.5rem;
+}
+
+.profile-link {
+  border: 1px solid #8b7e6b;
+  border-radius: 999px;
+  background: #fffcf6;
+  padding: 0.5rem 0.8rem;
+  text-decoration: none;
+}
+
+.profile-link-active {
+  border-color: #22333b;
+  background: #22333b;
+  color: #ffffff;
+}
+
 .print-toolbar div {
   display: grid;
   gap: 0.25rem;
@@ -698,6 +720,74 @@ textarea {
   margin: 0;
 }
 
+.print-board-tile {
+  gap: 6mm;
+  padding: 5mm;
+}
+
+.print-tile-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #22333b;
+  font-size: 0.8rem;
+}
+
+.print-tile-window {
+  position: relative;
+  width: 169.667mm;
+  height: 253mm;
+  overflow: hidden;
+  border: 0.4mm dashed #7d7164;
+}
+
+.print-tile-window::after {
+  position: absolute;
+  right: 3mm;
+  bottom: 3mm;
+  left: -0.4mm;
+  height: 0;
+  border-bottom: 0.4mm dashed #8b3f2f;
+  content: "";
+}
+
+.print-tile-window::before {
+  position: absolute;
+  top: -0.4mm;
+  right: 3mm;
+  bottom: -0.4mm;
+  width: 0;
+  border-right: 0.4mm dashed #8b3f2f;
+  content: "";
+}
+
+.print-board-large {
+  position: absolute;
+  width: 500mm;
+  height: 500mm;
+  gap: 3mm;
+  padding: 5mm;
+}
+
+.print-board-large span {
+  aspect-ratio: auto;
+}
+
+.print-board-large .board-blank {
+  background: transparent;
+}
+
+.print-cut-guide {
+  display: grid;
+  place-items: center;
+  min-height: 12mm;
+  border: 0.4mm dashed #7d7164;
+  color: #5c5145;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
 .print-card-sheet {
   display: grid;
   min-height: 297mm;
@@ -780,6 +870,10 @@ textarea {
 
   .print-card {
     break-inside: avoid;
+  }
+
+  .print-board-tile {
+    break-after: page;
   }
 }
 

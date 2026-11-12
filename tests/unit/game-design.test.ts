@@ -7,6 +7,7 @@ import {
   temirtauGameTemplate
 } from "../../src/modules/game-design/domain/game-design";
 import {
+  a4LargeBoardPrintProfile,
   getPrintSheetCount,
   validatePrintableGame
 } from "../../src/modules/exports/domain/print-profile";
@@ -75,6 +76,7 @@ describe("game design domain", () => {
       issues: []
     });
     expect(getPrintSheetCount(temirtauGameTemplate)).toBe(3);
+    expect(getPrintSheetCount(temirtauGameTemplate, a4LargeBoardPrintProfile)).toBe(8);
   });
 
   it("keeps PDF downloads server-gated before billing is connected", () => {
