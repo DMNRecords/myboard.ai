@@ -2,16 +2,24 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { formatCards } from "@/modules/game-design/domain/game-design";
-import { getLatestGameVersion } from "@/modules/game-design/application/get-latest-game-version";
+import { formatAssets, formatCards } from "@/modules/game-design/domain/game-design";
+import {
+  getGameVersions,
+  getLatestGameVersion
+} from "@/modules/game-design/application/get-latest-game-version";
 import { getOwnedProjectById } from "@/modules/projects/application/get-owned-projects";
 
-import { createTemirtauTemplateAction, saveGameDesignAction } from "./actions";
+import {
+  createTemirtauTemplateAction,
+  restoreGameVersionAction,
+  saveGameDesignAction
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
 const notices: Record<string, string> = {
   failed: "Не удалось сохранить версию. Проверьте поля и попробуйте ещё раз.",
+  restored: "Выбранная версия восстановлена как новая версия игры.",
   saved: "Новая версия игры сохранена.",
   template: "Шаблон «Темиртау» добавлен как первая версия игры."
 };
@@ -34,6 +42,13 @@ async function saveDesignFromForm(formData: FormData): Promise<void> {
   redirect(`/projects/${projectId}?notice=${result.status === "success" ? "saved" : "failed"}`);
 }
 
+async function restoreVersionFromForm(formData: FormData): Promise<void> {
+  "use server";
+  const result = await restoreGameVersionAction(formData);
+  const projectId = formData.get("projectId");
+  redirect(`/projects/${projectId}?notice=${result.status === "success" ? "restored" : "failed"}`);
+}
+
 export default async function ProjectEditorPage({
   params,
   searchParams
@@ -48,9 +63,10 @@ export default async function ProjectEditorPage({
   }
 
   const { projectId } = await params;
-  const [project, gameVersion, query] = await Promise.all([
+  const [project, gameVersion, gameVersions, query] = await Promise.all([
     getOwnedProjectById(user.id, projectId),
     getLatestGameVersion(user.id, projectId),
+    getGameVersions(user.id, projectId),
     searchParams
   ]);
 
@@ -159,6 +175,17 @@ export default async function ProjectEditorPage({
                 Одна карточка на строку: «Название | Текст карточки».
               </span>
             </label>
+            <label>
+              Ресурсы и изображения
+              <textarea
+                name="assets"
+                defaultValue={formatAssets(design.assets ?? [])}
+                placeholder="Название | https://example.com/image.jpg | Для поля или карточки"
+              />
+              <span className="field-hint">
+                Одна ссылка на строку: «Название | URL изображения | Описание».
+              </span>
+            </label>
             <button className="cta" type="submit">
               Сохранить новой версией
             </button>
@@ -193,9 +220,55 @@ export default async function ProjectEditorPage({
                 </article>
               ))}
             </div>
+            <h3>Ресурсы</h3>
+            {design.assets?.length ? (
+              <div className="asset-grid">
+                {design.assets.map((asset) => (
+                  <a
+                    className="game-asset"
+                    href={asset.url}
+                    key={asset.id}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <span>{asset.title}</span>
+                    <small>{asset.description}</small>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <p className="empty-assets">
+                Добавьте ссылки на ваши изображения, чтобы использовать их в следующей версии игры.
+              </p>
+            )}
           </aside>
         </div>
       )}
+      {gameVersions.length ? (
+        <section className="version-history" aria-labelledby="version-history-title">
+          <div>
+            <span className="eyebrow">История</span>
+            <h2 id="version-history-title">Версии игры</h2>
+          </div>
+          <div className="version-list">
+            {gameVersions.map((version) => (
+              <article className="version-item" key={version.id}>
+                <div>
+                  <strong>Версия {version.version}</strong>
+                  <span>{version.createdAt.toLocaleString("ru-RU")}</span>
+                </div>
+                <form action={restoreVersionFromForm}>
+                  <input name="projectId" type="hidden" value={project.id} />
+                  <input name="versionId" type="hidden" value={version.id} />
+                  <button className="secondary-button" type="submit">
+                    Восстановить как новую
+                  </button>
+                </form>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
