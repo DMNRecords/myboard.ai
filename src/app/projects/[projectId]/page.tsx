@@ -209,6 +209,9 @@ export default async function ProjectEditorPage({
             <button className="cta" type="submit">
               Сохранить новой версией
             </button>
+            <Link className="secondary-button" href={`/projects/${project.id}/print`}>
+              Предпросмотр печати A4
+            </Link>
           </form>
 
           <aside className="game-preview" aria-label="Предпросмотр игры">
