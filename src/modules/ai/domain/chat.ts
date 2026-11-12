@@ -14,6 +14,28 @@ export function normalizeChatPrompt(value: string): string {
   return prompt;
 }
 
+export function reviewChatPrompt(
+  value: string
+): { allowed: true } | { allowed: false; reason: string } {
+  const normalized = value.toLowerCase();
+  const restrictedPatterns = [
+    /как.*(изготовить|сделать).*(бомб|взрывчат|оружи)/,
+    /(продаж|покупк).*(наркот|героин|кокаин)/,
+    /(сексуал|интим).*(реб[её]н|несовершеннолет)/,
+    /(экстремист|террорист).*(пропаганд|агитац)/
+  ];
+
+  if (restrictedPatterns.some((pattern) => pattern.test(normalized))) {
+    return {
+      allowed: false,
+      reason:
+        "Запрос может нарушать правила безопасности. Попробуйте безопасную и оригинальную игровую идею."
+    };
+  }
+
+  return { allowed: true };
+}
+
 export function createGameDesignerInstructions(projectTitle: string): string {
   return [
     "You are MYBOARD.AI, a helpful board game design assistant.",

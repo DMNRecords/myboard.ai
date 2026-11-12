@@ -5,8 +5,16 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { hasAiProviderConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createGameDesignerInstructions, normalizeChatPrompt } from "@/modules/ai/domain/chat";
-import { createOwnedAiMessage } from "@/modules/ai/data/supabase-ai-message-repository";
+import {
+  createGameDesignerInstructions,
+  normalizeChatPrompt,
+  reviewChatPrompt
+} from "@/modules/ai/domain/chat";
+import {
+  countOwnedAiPromptsSince,
+  createModerationEvent,
+  createOwnedAiMessage
+} from "@/modules/ai/data/supabase-ai-message-repository";
 import {
   AiProviderRequestError,
   generateGameDesignerReply
@@ -14,7 +22,18 @@ import {
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
 
 export type AiActionResult =
-  { status: "success" } | { status: "error"; notice: "aiFailed" | "aiKey" | "aiLimit" | "aiSetup" };
+  | { status: "success" }
+  | {
+      status: "error";
+      notice: "aiFailed" | "aiKey" | "aiLimit" | "aiQuota" | "aiSetup" | "aiModerated";
+    };
+
+const dailyPromptLimit = 8;
+
+function startOfCurrentDay(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
 
 function getFormValue(formData: FormData, field: string): string {
   const value = formData.get(field);
@@ -40,6 +59,26 @@ export async function sendAiMessageAction(formData: FormData): Promise<AiActionR
 
     if (!project) {
       return { status: "error", notice: "aiFailed" };
+    }
+
+    const review = reviewChatPrompt(content);
+
+    if (!review.allowed) {
+      await createModerationEvent(database, {
+        ownerId: user.id,
+        projectId,
+        reason: review.reason
+      });
+      return { status: "error", notice: "aiModerated" };
+    }
+
+    const promptCount = await countOwnedAiPromptsSince(database, {
+      ownerId: user.id,
+      since: startOfCurrentDay()
+    });
+
+    if (promptCount >= dailyPromptLimit) {
+      return { status: "error", notice: "aiQuota" };
     }
 
     await createOwnedAiMessage(database, {
