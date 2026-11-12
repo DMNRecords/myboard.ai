@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getOpenAiConfig } from "@/lib/env";
+import { getAiProviderConfig } from "@/lib/env";
 
 type OpenAiResponse = { output_text?: unknown };
 
@@ -8,8 +8,12 @@ export async function generateGameDesignerReply(input: {
   instructions: string;
   message: string;
 }): Promise<string> {
-  const config = getOpenAiConfig();
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const config = getAiProviderConfig();
+  const endpoint =
+    config.provider === "openrouter"
+      ? "https://openrouter.ai/api/v1/responses"
+      : "https://api.openai.com/v1/responses";
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${config.apiKey}`,

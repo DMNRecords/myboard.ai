@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  getOpenAiConfig,
+  getAiProviderConfig,
   getSupabasePublicConfig,
-  hasOpenAiConfig,
+  hasAiProviderConfig,
   hasSupabasePublicConfig
 } from "../../src/lib/env";
 
@@ -39,14 +39,27 @@ describe("getSupabasePublicConfig", () => {
   });
 });
 
-describe("OpenAI server configuration", () => {
-  it("requires both a server key and model without exposing the key", () => {
-    expect(hasOpenAiConfig({ OPENAI_API_KEY: "key" })).toBe(false);
-    expect(hasOpenAiConfig({ OPENAI_API_KEY: "key", OPENAI_MODEL: "model" })).toBe(true);
-    expect(getOpenAiConfig({ OPENAI_API_KEY: "key", OPENAI_MODEL: "model" })).toEqual({
+describe("AI provider server configuration", () => {
+  it("requires a supported provider, server key and model without exposing the key", () => {
+    expect(hasAiProviderConfig({ AI_PROVIDER: "openrouter", AI_API_KEY: "key" })).toBe(false);
+    expect(
+      hasAiProviderConfig({
+        AI_PROVIDER: "openrouter",
+        AI_API_KEY: "key",
+        AI_MODEL: "openrouter/free"
+      })
+    ).toBe(true);
+    expect(
+      getAiProviderConfig({
+        AI_PROVIDER: "openrouter",
+        AI_API_KEY: "key",
+        AI_MODEL: "openrouter/free"
+      })
+    ).toEqual({
+      provider: "openrouter",
       apiKey: "key",
-      model: "model"
+      model: "openrouter/free"
     });
-    expect(() => getOpenAiConfig({})).toThrow("Missing OpenAI server configuration.");
+    expect(() => getAiProviderConfig({})).toThrow("Missing AI provider server configuration.");
   });
 });

@@ -10,21 +10,33 @@ export type SupabasePublicConfig = {
   publishableKey: string;
 };
 
-export function hasOpenAiConfig(environment: Environment = process.env): boolean {
-  return Boolean(environment.OPENAI_API_KEY?.trim() && environment.OPENAI_MODEL?.trim());
+export type AiProvider = "openai" | "openrouter";
+
+function isAiProvider(value: string | undefined): value is AiProvider {
+  return value === "openai" || value === "openrouter";
 }
 
-export function getOpenAiConfig(environment: Environment = process.env): {
+export function hasAiProviderConfig(environment: Environment = process.env): boolean {
+  return Boolean(
+    isAiProvider(environment.AI_PROVIDER) &&
+    environment.AI_API_KEY?.trim() &&
+    environment.AI_MODEL?.trim()
+  );
+}
+
+export function getAiProviderConfig(environment: Environment = process.env): {
+  provider: AiProvider;
   apiKey: string;
   model: string;
 } {
-  if (!hasOpenAiConfig(environment)) {
-    throw new Error("Missing OpenAI server configuration.");
+  if (!hasAiProviderConfig(environment)) {
+    throw new Error("Missing AI provider server configuration.");
   }
 
   return {
-    apiKey: environment.OPENAI_API_KEY as string,
-    model: environment.OPENAI_MODEL as string
+    provider: environment.AI_PROVIDER as AiProvider,
+    apiKey: environment.AI_API_KEY as string,
+    model: environment.AI_MODEL as string
   };
 }
 

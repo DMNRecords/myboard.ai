@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { hasOpenAiConfig } from "@/lib/env";
+import { hasAiProviderConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createGameDesignerInstructions, normalizeChatPrompt } from "@/modules/ai/domain/chat";
 import { createOwnedAiMessage } from "@/modules/ai/data/supabase-ai-message-repository";
@@ -25,8 +25,11 @@ export async function sendAiMessageAction(formData: FormData): Promise<AiActionR
     return { status: "error", message: "Войдите в аккаунт, чтобы пользоваться AI-чатом." };
   }
 
-  if (!hasOpenAiConfig()) {
-    return { status: "error", message: "AI-ключ или модель ещё не настроены на сервере." };
+  if (!hasAiProviderConfig()) {
+    return {
+      status: "error",
+      message: "AI-провайдер, ключ или модель ещё не настроены на сервере."
+    };
   }
 
   try {
