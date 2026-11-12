@@ -26,7 +26,7 @@ export async function generateGameDesignerReply(input: {
               { role: "system", content: input.instructions },
               { role: "user", content: input.message }
             ],
-            max_tokens: 600
+            max_tokens: 1200
           }
         }
       : {
@@ -35,7 +35,7 @@ export async function generateGameDesignerReply(input: {
             model: config.model,
             instructions: input.instructions,
             input: input.message,
-            max_output_tokens: 600,
+            max_output_tokens: 1200,
             store: false
           }
         };
