@@ -2,6 +2,8 @@
 node_modules/
 .pnpm-store/
 .next/
+next-env.d.ts
+tsconfig.tsbuildinfo
 out/
 coverage/
 playwright-report/
