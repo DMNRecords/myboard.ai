@@ -1,0 +1,263 @@
+:root {
+  color-scheme: light;
+  background: #f7f4ed;
+  color: #1f2937;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+a {
+  color: inherit;
+}
+
+.page-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+}
+
+.site-header,
+.site-footer {
+  padding: 1.25rem clamp(1.25rem, 5vw, 5rem);
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ded7c8;
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.stage-label {
+  color: #5c5145;
+  font-size: 0.875rem;
+}
+
+.hero {
+  display: grid;
+  gap: 1.5rem;
+  align-content: center;
+  max-width: 760px;
+  padding: clamp(4rem, 12vw, 9rem) clamp(1.25rem, 12vw, 10rem);
+}
+
+.eyebrow {
+  color: #8b3f2f;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.75rem, 7vw, 5.5rem);
+  line-height: 0.98;
+}
+
+.lead {
+  margin: 0;
+  color: #4c5564;
+  font-size: clamp(1.125rem, 2vw, 1.35rem);
+  line-height: 1.6;
+}
+
+.cta {
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  background: #1f2937;
+  color: #ffffff;
+  cursor: not-allowed;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.9rem 1.3rem;
+}
+
+.cta:disabled {
+  opacity: 0.72;
+}
+
+.cta {
+  text-decoration: none;
+}
+
+.site-footer {
+  color: #5c5145;
+  font-size: 0.875rem;
+}
+
+.auth-page,
+.projects-page {
+  min-height: 100vh;
+  padding: clamp(1.25rem, 5vw, 5rem);
+}
+
+.auth-page {
+  display: grid;
+  align-content: center;
+  gap: 2rem;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.auth-card,
+.project-card {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid #ded7c8;
+  border-radius: 1.25rem;
+  background: #fffcf6;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.auth-card h1,
+.projects-intro h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+.auth-card p,
+.projects-intro p {
+  margin: 0;
+  color: #4c5564;
+  line-height: 1.6;
+}
+
+.auth-form,
+.project-rename-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-form label,
+.project-card label {
+  display: grid;
+  gap: 0.5rem;
+  color: #384152;
+  font-weight: 700;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid #c9c0af;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  color: #1f2937;
+  font: inherit;
+  padding: 0.75rem 0.85rem;
+}
+
+.auth-actions,
+.projects-header,
+.project-grid {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.auth-actions {
+  flex-wrap: wrap;
+}
+
+.secondary-button,
+.danger-button,
+.text-button {
+  width: fit-content;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+}
+
+.secondary-button {
+  border: 1px solid #1f2937;
+  background: transparent;
+  color: #1f2937;
+}
+
+.danger-button {
+  border: 1px solid #9d2f2f;
+  background: transparent;
+  color: #9d2f2f;
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: #8b3f2f;
+  padding-left: 0;
+}
+
+.notice {
+  border-left: 3px solid #8b3f2f;
+  background: #f7eee2;
+  padding: 0.8rem 1rem;
+}
+
+.projects-page {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.projects-header {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.projects-intro {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 640px;
+  padding: clamp(3rem, 8vw, 6rem) 0 2rem;
+}
+
+.project-grid {
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.project-card {
+  flex: 1 1 280px;
+  max-width: 420px;
+}
+
+.project-card h2,
+.project-card p {
+  margin: 0;
+}
+
+.project-card-create {
+  border-color: #b58554;
+}
+
+.project-status {
+  color: #8b3f2f;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .site-header {
+    align-items: flex-start;
+    gap: 0.5rem;
+    flex-direction: column;
+  }
+}

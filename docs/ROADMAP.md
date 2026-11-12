@@ -7,6 +7,11 @@
   - [x] Protected `main` branch configured on GitHub (`Protect main`)
   - [x] Environments, secret ownership and staging/production access documented
 - [ ] Stage 1: Next.js app shell, auth, database, projects CRUD, staging
+  - [x] Next.js app shell, Supabase SSR auth and password recovery
+  - [x] Supabase project, `game_projects` migration, RLS and owner-only CRUD
+  - [x] Live local verification: signup, authenticated projects CRUD and RLS
+  - [x] Vercel project connected to the GitHub repository
+  - [x] Vercel Preview deployed and verified with Supabase authentication and project CRUD
 - [ ] Stage 2: versioned game schema, rules/board/cards/assets, preview
 - [ ] Stage 3: AI adapter, chat, structured generation, moderation, quotas
 - [ ] Stage 4: print profile, PDF renderer, export validation, entitlement gate

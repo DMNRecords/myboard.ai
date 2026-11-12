@@ -1,35 +1,19 @@
-import tseslint from "@typescript-eslint/eslint-plugin";
-import tsParser from "@typescript-eslint/parser";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTypeScript from "eslint-config-next/typescript";
+import prettier from "eslint-config-prettier/flat";
 
-export default [
-  {
-    ignores: [
-      ".next/**",
-      "coverage/**",
-      "node_modules/**",
-      "playwright-report/**",
-      "test-results/**"
-    ]
-  },
-  {
-    files: ["**/*.{js,mjs,cjs,ts,tsx}"],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module"
-      }
-    },
-    plugins: {
-      "@typescript-eslint": tseslint
-    },
-    rules: {
-      "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }
-      ]
-    }
-  }
-];
+export default defineConfig([
+  ...nextVitals,
+  ...nextTypeScript,
+  prettier,
+  globalIgnores([
+    ".next/**",
+    ".pnpm-store/**",
+    "coverage/**",
+    "node_modules/**",
+    "playwright-report/**",
+    "test-results/**",
+    "next-env.d.ts"
+  ])
+]);
