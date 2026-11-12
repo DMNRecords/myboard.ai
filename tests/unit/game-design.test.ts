@@ -6,6 +6,11 @@ import {
   parseCards,
   temirtauGameTemplate
 } from "../../src/modules/game-design/domain/game-design";
+import {
+  getPrintSheetCount,
+  validatePrintableGame
+} from "../../src/modules/exports/domain/print-profile";
+import { getPdfExportEntitlement } from "../../src/modules/exports/domain/export-entitlement";
 
 describe("game design domain", () => {
   it("provides an original Temirtau template with a board and cards", () => {
@@ -62,5 +67,20 @@ describe("game design domain", () => {
     expect(() => parseAssets("Файл | file:///private/photo.jpg | Нельзя")).toThrow(
       "Asset URL must use HTTP or HTTPS."
     );
+  });
+
+  it("validates a complete game for the A4 print profile", () => {
+    expect(validatePrintableGame(temirtauGameTemplate)).toEqual({
+      isPrintable: true,
+      issues: []
+    });
+    expect(getPrintSheetCount(temirtauGameTemplate)).toBe(3);
+  });
+
+  it("keeps PDF downloads server-gated before billing is connected", () => {
+    expect(getPdfExportEntitlement()).toEqual({
+      canDownloadPdf: false,
+      reason: "paymentRequired"
+    });
   });
 });
