@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { getPdfExportEntitlement } from "@/modules/exports/domain/export-entitlement";
+import { getPdfExportEntitlementForProject } from "@/modules/exports/application/get-pdf-export-entitlement";
 import { getOwnedProjectById } from "@/modules/projects/application/get-owned-projects";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function GET(_request: Request, context: { params: Promise<{ projec
     return Response.json({ error: "notFound" }, { status: 404 });
   }
 
-  const entitlement = getPdfExportEntitlement();
+  const entitlement = await getPdfExportEntitlementForProject(user.id, projectId);
 
   if (!entitlement.canDownloadPdf) {
     return Response.json({ error: entitlement.reason }, { status: 402 });
