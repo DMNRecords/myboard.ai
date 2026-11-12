@@ -5,6 +5,12 @@ import { getAiProviderConfig } from "@/lib/env";
 type OpenAiResponse = { output_text?: unknown };
 type OpenRouterResponse = { choices?: Array<{ message?: { content?: unknown } }> };
 
+export class AiProviderRequestError extends Error {
+  constructor(public readonly status: number) {
+    super("AI provider request failed.");
+  }
+}
+
 export async function generateGameDesignerReply(input: {
   instructions: string;
   message: string;
@@ -51,7 +57,7 @@ export async function generateGameDesignerReply(input: {
       : (payload as OpenAiResponse).output_text;
 
   if (!response.ok || typeof output !== "string" || !output.trim()) {
-    throw new Error(payload.error?.message || "AI provider did not return a text response.");
+    throw new AiProviderRequestError(response.status);
   }
 
   return output.trim();

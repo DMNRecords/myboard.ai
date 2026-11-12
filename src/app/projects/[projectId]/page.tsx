@@ -22,6 +22,9 @@ export const dynamic = "force-dynamic";
 const notices: Record<string, string> = {
   failed: "Не удалось сохранить версию. Проверьте поля и попробуйте ещё раз.",
   aiFailed: "AI не ответил. Проверьте ключ и модель, затем попробуйте ещё раз.",
+  aiKey: "AI-провайдер отклонил ключ. Проверьте AI_API_KEY в Vercel и выполните Redeploy.",
+  aiLimit: "Достигнут лимит бесплатного AI-тарифа. Повторите позже или смените провайдера.",
+  aiSetup: "AI-провайдер не принял настройки. Проверьте AI_PROVIDER и AI_MODEL в Vercel.",
   aiSent: "AI-ответ добавлен в историю чата.",
   restored: "Выбранная версия восстановлена как новая версия игры.",
   saved: "Новая версия игры сохранена.",
@@ -57,7 +60,9 @@ async function sendAiMessageFromForm(formData: FormData): Promise<void> {
   "use server";
   const result = await sendAiMessageAction(formData);
   const projectId = formData.get("projectId");
-  redirect(`/projects/${projectId}?notice=${result.status === "success" ? "aiSent" : "aiFailed"}`);
+  redirect(
+    `/projects/${projectId}?notice=${result.status === "success" ? "aiSent" : result.notice}`
+  );
 }
 
 export default async function ProjectEditorPage({

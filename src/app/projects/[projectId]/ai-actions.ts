@@ -7,10 +7,14 @@ import { hasAiProviderConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createGameDesignerInstructions, normalizeChatPrompt } from "@/modules/ai/domain/chat";
 import { createOwnedAiMessage } from "@/modules/ai/data/supabase-ai-message-repository";
-import { generateGameDesignerReply } from "@/modules/ai/data/openai-responses-provider";
+import {
+  AiProviderRequestError,
+  generateGameDesignerReply
+} from "@/modules/ai/data/openai-responses-provider";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
 
-export type AiActionResult = { status: "success" } | { status: "error"; message: string };
+export type AiActionResult =
+  { status: "success" } | { status: "error"; notice: "aiFailed" | "aiKey" | "aiLimit" | "aiSetup" };
 
 function getFormValue(formData: FormData, field: string): string {
   const value = formData.get(field);
@@ -22,14 +26,11 @@ export async function sendAiMessageAction(formData: FormData): Promise<AiActionR
   const projectId = getFormValue(formData, "projectId");
 
   if (!user || !projectId) {
-    return { status: "error", message: "Войдите в аккаунт, чтобы пользоваться AI-чатом." };
+    return { status: "error", notice: "aiFailed" };
   }
 
   if (!hasAiProviderConfig()) {
-    return {
-      status: "error",
-      message: "AI-провайдер, ключ или модель ещё не настроены на сервере."
-    };
+    return { status: "error", notice: "aiSetup" };
   }
 
   try {
@@ -38,7 +39,7 @@ export async function sendAiMessageAction(formData: FormData): Promise<AiActionR
     const project = await getOwnedProject(database, { ownerId: user.id, projectId });
 
     if (!project) {
-      return { status: "error", message: "Проект не найден или недоступен." };
+      return { status: "error", notice: "aiFailed" };
     }
 
     await createOwnedAiMessage(database, {
@@ -59,7 +60,21 @@ export async function sendAiMessageAction(formData: FormData): Promise<AiActionR
     });
     revalidatePath(`/projects/${projectId}`);
     return { status: "success" };
-  } catch {
-    return { status: "error", message: "Не удалось получить ответ AI. Попробуйте ещё раз позже." };
+  } catch (error) {
+    if (error instanceof AiProviderRequestError) {
+      if (error.status === 401 || error.status === 403) {
+        return { status: "error", notice: "aiKey" };
+      }
+
+      if (error.status === 429) {
+        return { status: "error", notice: "aiLimit" };
+      }
+
+      if (error.status === 400 || error.status === 404) {
+        return { status: "error", notice: "aiSetup" };
+      }
+    }
+
+    return { status: "error", notice: "aiFailed" };
   }
 }
