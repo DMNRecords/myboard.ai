@@ -3,36 +3,56 @@ import "server-only";
 import { getAiProviderConfig } from "@/lib/env";
 
 type OpenAiResponse = { output_text?: unknown };
+type OpenRouterResponse = { choices?: Array<{ message?: { content?: unknown } }> };
 
 export async function generateGameDesignerReply(input: {
   instructions: string;
   message: string;
 }): Promise<string> {
   const config = getAiProviderConfig();
-  const endpoint =
+  const request =
     config.provider === "openrouter"
-      ? "https://openrouter.ai/api/v1/responses"
-      : "https://api.openai.com/v1/responses";
-  const response = await fetch(endpoint, {
+      ? {
+          endpoint: "https://openrouter.ai/api/v1/chat/completions",
+          body: {
+            model: config.model,
+            messages: [
+              { role: "system", content: input.instructions },
+              { role: "user", content: input.message }
+            ],
+            max_tokens: 600
+          }
+        }
+      : {
+          endpoint: "https://api.openai.com/v1/responses",
+          body: {
+            model: config.model,
+            instructions: input.instructions,
+            input: input.message,
+            max_output_tokens: 600,
+            store: false
+          }
+        };
+  const response = await fetch(request.endpoint, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${config.apiKey}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-      model: config.model,
-      instructions: input.instructions,
-      input: input.message,
-      max_output_tokens: 600,
-      store: false
-    })
+    body: JSON.stringify(request.body)
   });
 
-  const payload = (await response.json()) as OpenAiResponse & { error?: { message?: string } };
+  const payload = (await response.json()) as
+    | (OpenAiResponse & { error?: { message?: string } })
+    | (OpenRouterResponse & { error?: { message?: string } });
+  const output =
+    config.provider === "openrouter"
+      ? (payload as OpenRouterResponse).choices?.[0]?.message?.content
+      : (payload as OpenAiResponse).output_text;
 
-  if (!response.ok || typeof payload.output_text !== "string" || !payload.output_text.trim()) {
-    throw new Error(payload.error?.message || "OpenAI did not return a text response.");
+  if (!response.ok || typeof output !== "string" || !output.trim()) {
+    throw new Error(payload.error?.message || "AI provider did not return a text response.");
   }
 
-  return payload.output_text.trim();
+  return output.trim();
 }
