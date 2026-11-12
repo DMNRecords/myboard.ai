@@ -1,12 +1,13 @@
 import type { GameDesign } from "@/modules/game-design/domain/game-design";
 
 export type PrintProfile = {
-  id: "a4-home";
+  id: "a4-home" | "a4-large-board";
   name: string;
   pageSize: "A4";
   safeMarginMm: number;
   bleedMm: number;
   cardColumns: number;
+  boardTiles: { columns: number; rows: number; boardSizeMm: number };
 };
 
 export const a4HomePrintProfile: PrintProfile = {
@@ -15,7 +16,18 @@ export const a4HomePrintProfile: PrintProfile = {
   pageSize: "A4",
   safeMarginMm: 10,
   bleedMm: 3,
-  cardColumns: 2
+  cardColumns: 2,
+  boardTiles: { columns: 1, rows: 1, boardSizeMm: 190 }
+};
+
+export const a4LargeBoardPrintProfile: PrintProfile = {
+  id: "a4-large-board",
+  name: "Большое поле 50 × 50 см (6 листов A4)",
+  pageSize: "A4",
+  safeMarginMm: 10,
+  bleedMm: 3,
+  cardColumns: 2,
+  boardTiles: { columns: 3, rows: 2, boardSizeMm: 500 }
 };
 
 export type PrintValidation = {
@@ -50,5 +62,6 @@ export function validatePrintableGame(design: GameDesign): PrintValidation {
 
 export function getPrintSheetCount(design: GameDesign, profile = a4HomePrintProfile): number {
   const cardsPerSheet = profile.cardColumns * 3;
-  return 2 + Math.ceil(design.cards.length / cardsPerSheet);
+  const boardSheets = profile.boardTiles.columns * profile.boardTiles.rows;
+  return 1 + boardSheets + Math.ceil(design.cards.length / cardsPerSheet);
 }
