@@ -5,6 +5,13 @@ export type GameCard = {
   category: "event" | "knowledge" | "challenge";
 };
 
+export type GameAsset = {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+};
+
 export type GameDesign = {
   schemaVersion: 1;
   concept: string;
@@ -17,6 +24,7 @@ export type GameDesign = {
     spaces: number;
   };
   cards: GameCard[];
+  assets: GameAsset[];
 };
 
 export const temirtauGameTemplate: GameDesign = {
@@ -51,7 +59,8 @@ export const temirtauGameTemplate: GameDesign = {
       text: "Назовите три качества хорошего соседа. Если справились — повторите бросок.",
       category: "challenge"
     }
-  ]
+  ],
+  assets: []
 };
 
 function normalizeText(value: string, field: string, maxLength: number): string {
@@ -96,6 +105,35 @@ export function parseCards(value: string): GameCard[] {
   });
 }
 
+export function parseAssets(value: string): GameAsset[] {
+  const lines = value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length > 24) {
+    throw new Error("Assets must not exceed 24 entries.");
+  }
+
+  return lines.map((line, index) => {
+    const [rawTitle, rawUrl, ...rawDescription] = line.split("|").map((part) => part.trim());
+    const title = normalizeText(rawTitle ?? "", "Asset title", 80);
+    const url = normalizeText(rawUrl ?? "", "Asset URL", 2000);
+    const description = normalizeText(
+      rawDescription.join("|") || rawTitle || "",
+      "Asset description",
+      240
+    );
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+      throw new Error("Asset URL must use HTTP or HTTPS.");
+    }
+
+    return { id: `asset-${index + 1}`, title, url: parsedUrl.toString(), description };
+  });
+}
+
 export function createGameDesign(input: {
   concept: string;
   objective: string;
@@ -105,6 +143,7 @@ export function createGameDesign(input: {
   boardTitle: string;
   boardSpaces: string;
   cards: string;
+  assets: string;
 }): GameDesign {
   const spaces = Number(input.boardSpaces);
 
@@ -123,10 +162,15 @@ export function createGameDesign(input: {
       title: normalizeText(input.boardTitle, "Board title", 120),
       spaces
     },
-    cards: parseCards(input.cards)
+    cards: parseCards(input.cards),
+    assets: parseAssets(input.assets)
   };
 }
 
 export function formatCards(cards: GameCard[]): string {
   return cards.map((card) => `${card.title} | ${card.text}`).join("\n");
+}
+
+export function formatAssets(assets: GameAsset[] = []): string {
+  return assets.map((asset) => `${asset.title} | ${asset.url} | ${asset.description}`).join("\n");
 }

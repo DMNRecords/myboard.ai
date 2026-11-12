@@ -48,6 +48,43 @@ export async function getLatestOwnedGameVersion(
   return data ? mapGameVersion(data) : null;
 }
 
+export async function listOwnedGameVersions(
+  database: DatabaseClient,
+  input: { ownerId: string; projectId: string }
+): Promise<GameVersion[]> {
+  const { data, error } = await database
+    .from("game_versions")
+    .select("id, project_id, owner_id, version, content, created_at")
+    .eq("owner_id", input.ownerId)
+    .eq("project_id", input.projectId)
+    .order("version", { ascending: false });
+
+  if (error) {
+    throw new Error("Unable to load game versions.");
+  }
+
+  return (data ?? []).map(mapGameVersion);
+}
+
+export async function getOwnedGameVersionById(
+  database: DatabaseClient,
+  input: { ownerId: string; projectId: string; versionId: string }
+): Promise<GameVersion | null> {
+  const { data, error } = await database
+    .from("game_versions")
+    .select("id, project_id, owner_id, version, content, created_at")
+    .eq("owner_id", input.ownerId)
+    .eq("project_id", input.projectId)
+    .eq("id", input.versionId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error("Unable to load game version.");
+  }
+
+  return data ? mapGameVersion(data) : null;
+}
+
 export async function createOwnedGameVersion(
   database: DatabaseClient,
   input: { ownerId: string; projectId: string; content: GameDesign }

@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { createOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
+import {
+  createOwnedGameVersion,
+  getOwnedGameVersionById
+} from "@/modules/game-design/data/supabase-game-version-repository";
 import { createGameDesign, temirtauGameTemplate } from "@/modules/game-design/domain/game-design";
 
 type GameDesignActionResult = { status: "success" } | { status: "error" };
@@ -57,9 +60,45 @@ export async function saveGameDesignAction(formData: FormData): Promise<GameDesi
         rules: valueFromForm(formData, "rules"),
         boardTitle: valueFromForm(formData, "boardTitle"),
         boardSpaces: valueFromForm(formData, "boardSpaces"),
-        cards: valueFromForm(formData, "cards")
+        cards: valueFromForm(formData, "cards"),
+        assets: valueFromForm(formData, "assets")
       })
     );
+  } catch {
+    return { status: "error" };
+  }
+}
+
+export async function restoreGameVersionAction(
+  formData: FormData
+): Promise<GameDesignActionResult> {
+  const user = await getCurrentUser();
+  const projectId = valueFromForm(formData, "projectId");
+  const versionId = valueFromForm(formData, "versionId");
+
+  if (!user || !projectId || !versionId) {
+    return { status: "error" };
+  }
+
+  try {
+    const database = await createSupabaseServerClient();
+    const source = await getOwnedGameVersionById(database, {
+      ownerId: user.id,
+      projectId,
+      versionId
+    });
+
+    if (!source) {
+      return { status: "error" };
+    }
+
+    await createOwnedGameVersion(database, {
+      ownerId: user.id,
+      projectId,
+      content: { ...source.content, assets: source.content.assets ?? [] }
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { status: "success" };
   } catch {
     return { status: "error" };
   }

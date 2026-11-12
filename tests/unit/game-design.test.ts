@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createGameDesign,
+  parseAssets,
   parseCards,
   temirtauGameTemplate
 } from "../../src/modules/game-design/domain/game-design";
@@ -23,7 +24,8 @@ describe("game design domain", () => {
         rules: "Бросайте кубик и выполняйте действие клетки.",
         boardTitle: "Маршрут",
         boardSpaces: "18",
-        cards: "Факт | Расскажите историю\nСобытие | Передвиньтесь вперёд"
+        cards: "Факт | Расскажите историю\nСобытие | Передвиньтесь вперёд",
+        assets: "Панорама | https://example.com/panorama.jpg | Обложка игры"
       })
     ).toMatchObject({
       schemaVersion: 1,
@@ -31,7 +33,8 @@ describe("game design domain", () => {
       cards: [
         { id: "card-1", category: "event" },
         { id: "card-2", category: "knowledge" }
-      ]
+      ],
+      assets: [{ id: "asset-1", title: "Панорама" }]
     });
   });
 
@@ -46,8 +49,18 @@ describe("game design domain", () => {
         rules: "Правила",
         boardTitle: "Поле",
         boardSpaces: "4",
-        cards: "Карточка | Текст"
+        cards: "Карточка | Текст",
+        assets: ""
       })
     ).toThrow("Board must have between 8 and 60 spaces.");
+  });
+
+  it("accepts web image resources and rejects other protocols", () => {
+    expect(parseAssets("Фото | https://example.com/photo.jpg | Для карточки")).toMatchObject([
+      { title: "Фото", url: "https://example.com/photo.jpg" }
+    ]);
+    expect(() => parseAssets("Файл | file:///private/photo.jpg | Нельзя")).toThrow(
+      "Asset URL must use HTTP or HTTPS."
+    );
   });
 });
