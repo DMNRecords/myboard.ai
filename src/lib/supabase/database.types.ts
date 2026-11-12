@@ -103,6 +103,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      project_entitlements: {
+        Row: {
+          capability: string;
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          owner_id: string;
+          project_id: string;
+          source: string;
+          starts_at: string;
+          status: string;
+        };
+        Insert: {
+          capability: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          owner_id: string;
+          project_id: string;
+          source: string;
+          starts_at?: string;
+          status?: string;
+        };
+        Update: {
+          capability?: string;
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          owner_id?: string;
+          project_id?: string;
+          source?: string;
+          starts_at?: string;
+          status?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

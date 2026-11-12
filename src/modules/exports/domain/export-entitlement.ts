@@ -3,10 +3,22 @@ export type ExportEntitlement = {
   reason?: "paymentRequired";
 };
 
-/**
- * Centralizes the server-side export decision. Stage 5 will replace this
- * beta-safe default with a Purchase/Entitlement lookup.
- */
-export function getPdfExportEntitlement(): ExportEntitlement {
-  return { canDownloadPdf: false, reason: "paymentRequired" };
+export type PdfExportGrant = {
+  expiresAt: Date | null;
+  startsAt: Date;
+  status: "active" | "revoked";
+};
+
+export function getPdfExportEntitlement(
+  grants: PdfExportGrant[],
+  now = new Date()
+): ExportEntitlement {
+  const canDownloadPdf = grants.some(
+    (grant) =>
+      grant.status === "active" &&
+      grant.startsAt <= now &&
+      (grant.expiresAt === null || grant.expiresAt > now)
+  );
+
+  return canDownloadPdf ? { canDownloadPdf } : { canDownloadPdf: false, reason: "paymentRequired" };
 }

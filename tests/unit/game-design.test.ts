@@ -80,9 +80,14 @@ describe("game design domain", () => {
   });
 
   it("keeps PDF downloads server-gated before billing is connected", () => {
-    expect(getPdfExportEntitlement()).toEqual({
+    expect(getPdfExportEntitlement([])).toEqual({
       canDownloadPdf: false,
       reason: "paymentRequired"
     });
+    expect(
+      getPdfExportEntitlement([
+        { status: "active", startsAt: new Date("2026-01-01"), expiresAt: null }
+      ])
+    ).toEqual({ canDownloadPdf: true });
   });
 });
