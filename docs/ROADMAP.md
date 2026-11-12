@@ -13,6 +13,10 @@
   - [x] Vercel project connected to the GitHub repository
   - [x] Vercel Preview deployed and verified with Supabase authentication and project CRUD
 - [ ] Stage 2: versioned game schema, rules/board/cards/assets, preview
+  - [x] Immutable game-version storage with owner-only RLS
+  - [x] Original Temirtau starter template with rules, board and cards
+  - [x] Project editor and visual board/card preview
+  - [ ] Live authenticated verification of version saving in Preview
 - [ ] Stage 3: AI adapter, chat, structured generation, moderation, quotas
 - [ ] Stage 4: print profile, PDF renderer, export validation, entitlement gate
 - [ ] Stage 5: Free/Creator, payments/webhooks, admin, audit

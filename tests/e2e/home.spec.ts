@@ -31,3 +31,9 @@ test("redirects anonymous visitors from projects to login", async ({ page }) => 
 
   await expect(page).toHaveURL(/\/login$/);
 });
+
+test("redirects anonymous visitors from the game editor to login", async ({ page }) => {
+  await page.goto("/projects/demo-project");
+
+  await expect(page).toHaveURL(/\/login$/);
+});

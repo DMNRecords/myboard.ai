@@ -1,6 +1,28 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 export type Database = {
   public: {
     Tables: {
+      game_versions: {
+        Row: {
+          content: Json;
+          created_at: string;
+          id: string;
+          owner_id: string;
+          project_id: string;
+          version: number;
+        };
+        Insert: {
+          content: Json;
+          created_at?: string;
+          id?: string;
+          owner_id: string;
+          project_id: string;
+          version: number;
+        };
+        Update: never;
+        Relationships: [];
+      };
       game_projects: {
         Row: {
           archived_at: string | null;
