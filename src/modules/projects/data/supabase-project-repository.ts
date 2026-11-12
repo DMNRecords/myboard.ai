@@ -61,6 +61,22 @@ export async function listOwnedProjects(
   return (data ?? []).map(mapGameProject);
 }
 
+export async function getOwnedProject(
+  database: DatabaseClient,
+  input: { ownerId: string; projectId: string }
+): Promise<GameProject | null> {
+  const { data, error } = await database
+    .from("game_projects")
+    .select(projectColumns)
+    .eq("owner_id", input.ownerId)
+    .eq("id", input.projectId)
+    .maybeSingle();
+
+  throwOnDatabaseError(error, "load");
+
+  return data ? mapGameProject(data) : null;
+}
+
 export async function createOwnedProject(
   database: DatabaseClient,
   input: { ownerId: string; title: string; language: ProjectLanguage }

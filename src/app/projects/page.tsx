@@ -123,6 +123,9 @@ export default async function ProjectsPage({
               </button>
             </form>
             <p>{project.language.toUpperCase()}</p>
+            <Link className="secondary-button" href={`/projects/${project.id}`}>
+              Открыть редактор
+            </Link>
             {project.status === "draft" ? (
               <form action={archiveProjectFromForm}>
                 <input name="projectId" type="hidden" value={project.id} />

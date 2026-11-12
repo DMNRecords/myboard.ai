@@ -102,7 +102,8 @@ h1 {
 }
 
 .auth-page,
-.projects-page {
+.projects-page,
+.editor-page {
   min-height: 100vh;
   padding: clamp(1.25rem, 5vw, 5rem);
 }
@@ -155,7 +156,8 @@ h1 {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   border: 1px solid #c9c0af;
   border-radius: 0.65rem;
@@ -163,6 +165,11 @@ select {
   color: #1f2937;
   font: inherit;
   padding: 0.75rem 0.85rem;
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
 }
 
 .auth-actions,
@@ -254,10 +261,172 @@ select {
   font-weight: 700;
 }
 
+.editor-page {
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.editor-intro {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 760px;
+  padding: clamp(3rem, 8vw, 6rem) 0 2rem;
+}
+
+.editor-intro h1,
+.empty-design h2,
+.design-form h2,
+.game-preview h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.editor-intro p,
+.empty-design p,
+.game-preview > p,
+.game-card p {
+  margin: 0;
+  color: #4c5564;
+  line-height: 1.6;
+}
+
+.empty-design,
+.design-form,
+.game-preview {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid #ded7c8;
+  border-radius: 1.25rem;
+  background: #fffcf6;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.empty-design {
+  max-width: 680px;
+}
+
+.editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.design-form label {
+  display: grid;
+  gap: 0.5rem;
+  color: #384152;
+  font-weight: 700;
+}
+
+.editor-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field-hint {
+  color: #5c5145;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+.game-preview {
+  position: sticky;
+  top: 1.5rem;
+}
+
+.game-meta {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+}
+
+.game-meta div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.game-meta dt {
+  color: #5c5145;
+  font-size: 0.8rem;
+}
+
+.game-meta dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.board-preview {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(2rem, 1fr));
+  gap: 0.35rem;
+  padding: 0.8rem;
+  border-radius: 1rem;
+  background: #22333b;
+}
+
+.board-preview span {
+  display: grid;
+  min-height: 2.5rem;
+  place-items: center;
+  border-radius: 0.5rem;
+  background: #f5ca7d;
+  color: #22333b;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.board-preview span:nth-child(3n) {
+  background: #b8d8ba;
+}
+
+.board-preview span:first-child,
+.board-preview span:last-child {
+  background: #d97555;
+  color: #ffffff;
+}
+
+.card-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.game-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 0.8rem;
+  border: 1px solid #e1d7c5;
+  background: #fff;
+}
+
+.game-card span {
+  color: #8b3f2f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-card h4,
+.game-preview h3 {
+  margin: 0;
+}
+
 @media (max-width: 560px) {
   .site-header {
     align-items: flex-start;
     gap: 0.5rem;
     flex-direction: column;
+  }
+
+  .editor-layout,
+  .editor-two-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .game-preview {
+    position: static;
   }
 }
