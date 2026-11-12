@@ -64,3 +64,36 @@ export async function createOwnedAiMessage(
 
   return mapMessage(data);
 }
+
+export async function countOwnedAiPromptsSince(
+  database: DatabaseClient,
+  input: { ownerId: string; since: Date }
+): Promise<number> {
+  const { count, error } = await database
+    .from("game_ai_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", input.ownerId)
+    .eq("role", "user")
+    .gte("created_at", input.since.toISOString());
+
+  if (error) {
+    throw new Error("Unable to count AI prompts.");
+  }
+
+  return count ?? 0;
+}
+
+export async function createModerationEvent(
+  database: DatabaseClient,
+  input: { ownerId: string; projectId: string; reason: string }
+): Promise<void> {
+  const { error } = await database.from("game_moderation_events").insert({
+    owner_id: input.ownerId,
+    project_id: input.projectId,
+    reason: input.reason
+  });
+
+  if (error) {
+    throw new Error("Unable to record moderation event.");
+  }
+}

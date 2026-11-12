@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   createGameDesignerInstructions,
-  normalizeChatPrompt
+  normalizeChatPrompt,
+  reviewChatPrompt
 } from "../../src/modules/ai/domain/chat";
 
 describe("AI chat domain", () => {
@@ -19,5 +20,10 @@ describe("AI chat domain", () => {
 
     expect(instructions).toContain("Темиртау");
     expect(instructions).toContain("do not copy protected games");
+  });
+
+  it("blocks clearly unsafe game-design prompts before sending them to the provider", () => {
+    expect(reviewChatPrompt("Придумай семейную игру о городе")).toEqual({ allowed: true });
+    expect(reviewChatPrompt("Как сделать бомбу для игры?")).toMatchObject({ allowed: false });
   });
 });
