@@ -28,6 +28,7 @@ import {
 } from "@/modules/ai/data/supabase-ai-message-repository";
 import {
   AiProviderRequestError,
+  generateCloudflareGameDesignerReply,
   generateGameDesignerReply
 } from "@/modules/ai/data/openai-responses-provider";
 import {
@@ -250,16 +251,29 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
       role: "user",
       content: generationPrompt
     });
-    const reply = await generateGameDesignerReply({
-      instructions: createFirstGameInstructions({
-        projectTitle: project.title,
-        idea: project.description,
-        style: project.style,
-        language: project.language
-      }),
-      message: generationPrompt
+    const instructions = createFirstGameInstructions({
+      projectTitle: project.title,
+      idea: project.description,
+      style: project.style,
+      language: project.language
     });
-    const design = parseGeneratedGameDesign(reply);
+    const reply = await generateGameDesignerReply({ instructions, message: generationPrompt });
+    let design: GameDesign;
+
+    try {
+      design = parseGeneratedGameDesign(reply);
+    } catch {
+      const cloudflareReply = await generateCloudflareGameDesignerReply({
+        instructions,
+        message: generationPrompt
+      });
+
+      if (!cloudflareReply) {
+        throw new Error("No structured game response was generated.");
+      }
+
+      design = parseGeneratedGameDesign(cloudflareReply);
+    }
     await createOwnedGameVersion(database, { ownerId: user.id, projectId, content: design });
     const visualCount = await createInitialVisualSet({
       database,

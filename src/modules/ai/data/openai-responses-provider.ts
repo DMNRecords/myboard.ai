@@ -18,7 +18,7 @@ function shouldUseCloudflareFallback(status: number): boolean {
   return status === 402 || status === 408 || status === 429 || status >= 500;
 }
 
-async function generateWithCloudflareFallback(input: {
+export async function generateCloudflareGameDesignerReply(input: {
   instructions: string;
   message: string;
 }): Promise<string | null> {
@@ -88,14 +88,28 @@ export async function generateGameDesignerReply(input: {
             store: false
           }
         };
-  const response = await fetch(request.endpoint, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(request.body)
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(request.endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(request.body)
+    });
+  } catch {
+    if (config.provider === "openrouter") {
+      const fallback = await generateCloudflareGameDesignerReply(input);
+
+      if (fallback) {
+        return fallback;
+      }
+    }
+
+    throw new AiProviderRequestError(503);
+  }
 
   const payload = (await response.json()) as
     | (OpenAiResponse & { error?: { message?: string } })
@@ -110,7 +124,7 @@ export async function generateGameDesignerReply(input: {
   }
 
   if (config.provider === "openrouter" && shouldUseCloudflareFallback(response.status)) {
-    const fallback = await generateWithCloudflareFallback(input);
+    const fallback = await generateCloudflareGameDesignerReply(input);
 
     if (fallback) {
       return fallback;
