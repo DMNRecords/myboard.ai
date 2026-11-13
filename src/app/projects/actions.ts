@@ -10,10 +10,15 @@ import {
   deleteOwnedProject,
   renameOwnedProject
 } from "@/modules/projects/data/supabase-project-repository";
-import { isProjectLanguage, normalizeProjectTitle } from "@/modules/projects/domain/project";
+import {
+  createProjectTitleFromIdea,
+  isProjectLanguage,
+  normalizeProjectIdea,
+  normalizeProjectTitle
+} from "@/modules/projects/domain/project";
 
 export type ProjectActionResult =
-  { status: "error"; message: string } | { status: "success"; message: string };
+  { status: "error"; message: string } | { status: "success"; message: string; projectId?: string };
 
 function getFormString(formData: FormData, field: string): string {
   const value = formData.get(field);
@@ -41,6 +46,11 @@ function unavailableProjectResult(): ProjectActionResult {
   return { status: "error", message: "Проект не найден или недоступен." };
 }
 
+function normalizeStyle(value: string): string | null {
+  const allowedStyles = new Set(["noir", "retro", "comic", "anime", "classic", "future"]);
+  return allowedStyles.has(value) ? value : null;
+}
+
 export async function createProjectAction(formData: FormData): Promise<ProjectActionResult> {
   const context = await getActionContext();
 
@@ -55,13 +65,16 @@ export async function createProjectAction(formData: FormData): Promise<ProjectAc
   }
 
   try {
-    await createOwnedProject(context.database, {
+    const idea = normalizeProjectIdea(getFormString(formData, "idea"));
+    const project = await createOwnedProject(context.database, {
       ownerId: context.userId,
-      title: normalizeProjectTitle(getFormString(formData, "title")),
-      language
+      title: createProjectTitleFromIdea(idea),
+      language,
+      description: idea,
+      style: normalizeStyle(getFormString(formData, "style"))
     });
     revalidatePath("/projects");
-    return { status: "success", message: "Проект создан." };
+    return { status: "success", message: "Проект создан.", projectId: project.id };
   } catch {
     return { status: "error", message: "Не удалось создать проект. Повторите попытку." };
   }
