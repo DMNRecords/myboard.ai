@@ -1,10 +1,32 @@
 import type { GameDesign } from "@/modules/game-design/domain/game-design";
 
-export const gameVisualKinds = ["cover", "box", "board", "cards"] as const;
+export const gameVisualKinds = ["cover", "box", "board", "cards", "tokens", "currency"] as const;
 export type GameVisualKind = (typeof gameVisualKinds)[number];
+export const dailyImageLimit = 10;
 
 export function isGameVisualKind(value: string): value is GameVisualKind {
   return gameVisualKinds.some((kind) => kind === value);
+}
+
+export function getInitialGameVisualKinds(input: {
+  idea: string;
+  design: GameDesign;
+}): GameVisualKind[] {
+  const source = `${input.idea} ${input.design.concept} ${input.design.rules}`.toLocaleLowerCase(
+    "ru-RU"
+  );
+  const isCardGame = /карточн(ая|ый|ые)? игра|игральн|покер|колод|card game/.test(
+    input.idea.toLocaleLowerCase("ru-RU")
+  );
+  const usesCurrency = /валют|деньг|монет|банк|экономик|торгов/.test(source);
+
+  if (isCardGame) {
+    return ["cover", "box", "cards", "tokens"];
+  }
+
+  return usesCurrency
+    ? ["cover", "box", "board", "cards", "tokens", "currency"]
+    : ["cover", "box", "board", "cards", "tokens"];
 }
 
 export function buildGameVisualPrompt(input: {
@@ -18,7 +40,9 @@ export function buildGameVisualPrompt(input: {
     board: "a top-down illustrated game board with a unique route and game spaces",
     box: "an original premium board game box cover mockup",
     cards: "a coordinated set of original illustrated game cards arranged as a product spread",
-    cover: "an original cinematic cover illustration for the board game"
+    cover: "an original cinematic cover illustration for the board game",
+    currency: "a set of original game banknotes, coins, and resource markers laid out for print",
+    tokens: "a coordinated set of original player tokens, dice, trackers, and component markers"
   };
 
   return [

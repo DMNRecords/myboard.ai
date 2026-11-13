@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildGameVisualPrompt,
+  getInitialGameVisualKinds,
   isGameVisualKind
 } from "../../src/modules/assets/domain/game-visual";
 import { temirtauGameTemplate } from "../../src/modules/game-design/domain/game-design";
@@ -26,5 +27,20 @@ describe("game visual prompt", () => {
     expect(isGameVisualKind("cover")).toBe(true);
     expect(isGameVisualKind("cards")).toBe(true);
     expect(isGameVisualKind("poster")).toBe(false);
+  });
+
+  it("chooses a visual set based on the game idea", () => {
+    expect(
+      getInitialGameVisualKinds({
+        idea: "Игра о городе с валютой и торговлей",
+        design: temirtauGameTemplate
+      })
+    ).toEqual(["cover", "box", "board", "cards", "tokens", "currency"]);
+    expect(
+      getInitialGameVisualKinds({
+        idea: "Карточная игра про космос",
+        design: temirtauGameTemplate
+      })
+    ).toEqual(["cover", "box", "cards", "tokens"]);
   });
 });

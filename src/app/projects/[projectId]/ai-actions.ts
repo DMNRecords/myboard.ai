@@ -3,8 +3,18 @@
 import { revalidatePath } from "next/cache";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { hasAiProviderConfig } from "@/lib/env";
+import { hasAiProviderConfig, hasImageProviderConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  ImageProviderRequestError,
+  generateGameVisual
+} from "@/modules/assets/data/openai-image-provider";
+import { uploadGeneratedGameVisual } from "@/modules/assets/data/supabase-game-asset-storage";
+import {
+  buildGameVisualPrompt,
+  dailyImageLimit,
+  getInitialGameVisualKinds
+} from "@/modules/assets/domain/game-visual";
 import {
   createGameDesignerInstructions,
   normalizeChatPrompt,
@@ -12,6 +22,7 @@ import {
 } from "@/modules/ai/domain/chat";
 import {
   countOwnedAiPromptsSince,
+  countOwnedImagePromptsSince,
   createModerationEvent,
   createOwnedAiMessage
 } from "@/modules/ai/data/supabase-ai-message-repository";
@@ -25,7 +36,9 @@ import {
 } from "@/modules/ai/domain/game-generation";
 import { createOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
 import { getLatestOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
+import type { GameDesign } from "@/modules/game-design/domain/game-design";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
+import type { GameProject } from "@/modules/projects/domain/project";
 
 export type AiActionResult =
   | { status: "success" }
@@ -44,6 +57,71 @@ function startOfCurrentDay(): Date {
 function getFormValue(formData: FormData, field: string): string {
   const value = formData.get(field);
   return typeof value === "string" ? value : "";
+}
+
+async function createInitialVisualSet(input: {
+  database: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  ownerId: string;
+  project: GameProject;
+  design: GameDesign;
+}): Promise<number> {
+  if (!hasImageProviderConfig()) {
+    return 0;
+  }
+
+  const usedToday = await countOwnedImagePromptsSince(input.database, {
+    ownerId: input.ownerId,
+    since: startOfCurrentDay()
+  });
+  const kinds = getInitialGameVisualKinds({
+    idea: input.project.description ?? input.project.title,
+    design: input.design
+  }).slice(0, Math.max(0, dailyImageLimit - usedToday));
+
+  if (kinds.length === 0) {
+    return 0;
+  }
+
+  await Promise.all(
+    kinds.map((kind) =>
+      createOwnedAiMessage(input.database, {
+        ownerId: input.ownerId,
+        projectId: input.project.id,
+        role: "user",
+        content: `Создать AI-визуал: ${kind}.`
+      })
+    )
+  );
+  const results = await Promise.allSettled(
+    kinds.map(async (kind) => {
+      const image = await generateGameVisual(
+        buildGameVisualPrompt({
+          kind,
+          projectTitle: input.project.title,
+          projectIdea: input.project.description,
+          style: input.project.style,
+          design: input.design
+        })
+      );
+      return uploadGeneratedGameVisual(input.database, {
+        ownerId: input.ownerId,
+        projectId: input.project.id,
+        kind,
+        image
+      });
+    })
+  );
+  const assets = results.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+
+  if (assets.length) {
+    await createOwnedGameVersion(input.database, {
+      ownerId: input.ownerId,
+      projectId: input.project.id,
+      content: { ...input.design, assets: [...(input.design.assets ?? []), ...assets] }
+    });
+  }
+
+  return assets.length;
 }
 
 export async function sendAiMessageAction(formData: FormData): Promise<AiActionResult> {
@@ -183,16 +261,25 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
     });
     const design = parseGeneratedGameDesign(reply);
     await createOwnedGameVersion(database, { ownerId: user.id, projectId, content: design });
+    const visualCount = await createInitialVisualSet({
+      database,
+      ownerId: user.id,
+      project,
+      design
+    });
     await createOwnedAiMessage(database, {
       ownerId: user.id,
       projectId,
       role: "assistant",
-      content: "Первая версия игры создана: правила, поле и карточки уже доступны в конструкторе."
+      content:
+        visualCount > 0
+          ? `Первая версия игры создана. AI подготовил ${visualCount} визуальных компонентов в едином стиле.`
+          : "Первая версия игры создана: правила, поле и карточки уже доступны в конструкторе."
     });
     revalidatePath(`/projects/${projectId}`);
     return { status: "success" };
   } catch (error) {
-    if (error instanceof AiProviderRequestError) {
+    if (error instanceof AiProviderRequestError || error instanceof ImageProviderRequestError) {
       if (error.status === 401 || error.status === 403) {
         return { status: "error", notice: "aiKey" };
       }

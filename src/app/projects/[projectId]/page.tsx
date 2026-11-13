@@ -321,6 +321,8 @@ export default async function ProjectEditorPage({
                     <option value="box">Коробка</option>
                     <option value="board">Игровое поле</option>
                     <option value="cards">Набор карточек</option>
+                    <option value="tokens">Фишки и жетоны</option>
+                    <option value="currency">Игровая валюта</option>
                   </select>
                 </label>
                 <button className="secondary-button" type="submit">

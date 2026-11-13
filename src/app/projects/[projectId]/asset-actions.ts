@@ -10,7 +10,11 @@ import {
   generateGameVisual
 } from "@/modules/assets/data/openai-image-provider";
 import { uploadGeneratedGameVisual } from "@/modules/assets/data/supabase-game-asset-storage";
-import { buildGameVisualPrompt, isGameVisualKind } from "@/modules/assets/domain/game-visual";
+import {
+  buildGameVisualPrompt,
+  dailyImageLimit,
+  isGameVisualKind
+} from "@/modules/assets/domain/game-visual";
 import {
   countOwnedImagePromptsSince,
   createModerationEvent,
@@ -39,8 +43,6 @@ export type ImageActionResult =
         | "imageSetupProvider"
         | "imageModerated";
     };
-
-const dailyImageLimit = 4;
 
 function startOfCurrentDay(): Date {
   const now = new Date();
