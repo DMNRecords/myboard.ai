@@ -36,8 +36,18 @@ export function InitialVisualGenerator({
   if (kinds.length === 0 || (!isPending && completed === 0)) return null;
 
   return (
-    <p className="notice">
-      AI собирает визуалы: {completed} из {kinds.length}.
-    </p>
+    <section aria-live="polite" className="visual-progress">
+      <div>
+        <span aria-hidden="true" className="loading-orb" />
+        <strong>AI оформляет комплект игры</strong>
+      </div>
+      <p>
+        Готово {completed} из {kinds.length}. Можно смотреть и редактировать остальные части —
+        визуалы появятся сами.
+      </p>
+      <span aria-hidden="true" className="visual-progress-track">
+        <span style={{ width: `${(completed / kinds.length) * 100}%` }} />
+      </span>
+    </section>
   );
 }

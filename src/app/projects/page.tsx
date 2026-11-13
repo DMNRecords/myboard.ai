@@ -11,6 +11,7 @@ import {
   renameProjectAction
 } from "./actions";
 import { signOutAction } from "../login/actions";
+import { PendingSubmitButton } from "../pending-submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -136,9 +137,9 @@ export default async function ProjectsPage({
               </select>
             </label>
           </div>
-          <button className="marketing-primary-cta" type="submit">
+          <PendingSubmitButton className="marketing-primary-cta" pendingLabel="Сохраняем идею…">
             Создать первую версию <span aria-hidden="true">→</span>
-          </button>
+          </PendingSubmitButton>
         </form>
       </section>
 

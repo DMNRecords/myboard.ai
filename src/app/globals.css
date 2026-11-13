@@ -92,6 +92,30 @@ h1 {
   opacity: 0.72;
 }
 
+.is-pending {
+  cursor: wait !important;
+}
+
+.button-loading-dot,
+.loading-orb {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin-right: 0.5rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: button-spin 0.7s linear infinite;
+  vertical-align: -0.1rem;
+}
+
+@keyframes button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .cta {
   text-decoration: none;
 }
@@ -2136,6 +2160,21 @@ textarea {
   cursor: pointer;
 }
 
+.creation-steps {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.1rem 0 0.35rem;
+  padding-left: 1.25rem;
+  color: #514d69;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.creation-steps li::marker {
+  color: #7145e5;
+  font-weight: 900;
+}
+
 .builder-shell {
   display: grid;
   grid-template-columns: 11rem minmax(0, 1fr);
@@ -2194,6 +2233,112 @@ textarea {
 .builder-preview {
   top: 1.25rem;
   box-shadow: 0 0.8rem 2.5rem rgb(51 36 96 / 8%);
+}
+
+.builder-details {
+  align-self: start;
+  border: 1px solid #e4dcea;
+  border-radius: 1.25rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.builder-details summary {
+  display: grid;
+  gap: 0.2rem;
+  cursor: pointer;
+  list-style: none;
+  padding: 1.15rem 3.3rem 1.15rem 1.3rem;
+  position: relative;
+}
+
+.builder-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.builder-details summary::after {
+  content: "+";
+  position: absolute;
+  top: 50%;
+  right: 1.25rem;
+  color: #7145e5;
+  font-size: 1.5rem;
+  font-weight: 400;
+  transform: translateY(-50%);
+}
+
+.builder-details[open] summary::after {
+  content: "−";
+}
+
+.builder-details summary span {
+  color: #7145e5;
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.builder-details summary strong {
+  color: #2b2543;
+}
+
+.builder-details summary small {
+  color: #6f6880;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.builder-details .design-form {
+  border: 0;
+  border-top: 1px solid #eee8f3;
+  border-radius: 0;
+}
+
+.visual-progress {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.85rem;
+  border: 1px solid #d8cbff;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, #f5f0ff, #fff);
+}
+
+.visual-progress > div {
+  display: flex;
+  align-items: center;
+  color: #39266f;
+  font-size: 0.88rem;
+}
+
+.visual-progress .loading-orb {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-right: 0.55rem;
+  color: #7145e5;
+}
+
+.visual-progress p {
+  margin: 0;
+  color: #665f78;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.visual-progress-track {
+  display: block;
+  height: 0.38rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5def5;
+}
+
+.visual-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7145e5, #b091ff);
+  transition: width 0.35s ease;
 }
 
 .builder-preview .board-preview {

@@ -19,6 +19,7 @@ import {
 import { generateGameVisualAction } from "./asset-actions";
 import { generateFirstGameAction, sendAiMessageAction } from "./ai-actions";
 import { InitialVisualGenerator } from "./initial-visual-generator";
+import { PendingSubmitButton } from "../../pending-submit-button";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -179,20 +180,25 @@ export default async function ProjectEditorPage({
           <span aria-hidden="true">✦</span>
           <h2 id="template-title">Соберём первую версию игры</h2>
           <p>
-            Начните диалог с AI‑дизайнером ниже: он уточнит идею и предложит оригинальные правила,
-            поле и карточки. Для знакомства также доступен стартовый шаблон Темиртау.
+            Ваша идея сохранена. AI подготовит первую играбельную версию: правила, поле, карточки и
+            подходящий набор визуалов. Обычно это занимает до минуты.
           </p>
+          <ol className="creation-steps">
+            <li>Продумываем механику и состав игры</li>
+            <li>Собираем поле, правила и карточки</li>
+            <li>Оформляем компоненты в едином стиле</li>
+          </ol>
           <form action={generateFirstGameFromForm}>
             <input name="projectId" type="hidden" value={project.id} />
-            <button className="cta" type="submit">
+            <PendingSubmitButton pendingLabel="AI собирает первую версию…">
               Создать первую версию с AI
-            </button>
+            </PendingSubmitButton>
           </form>
           <form action={createTemplateFromForm}>
             <input name="projectId" type="hidden" value={project.id} />
-            <button className="cta" type="submit">
+            <PendingSubmitButton pendingLabel="Открываем шаблон…">
               Открыть шаблон Темиртау
-            </button>
+            </PendingSubmitButton>
           </form>
         </section>
       ) : (
@@ -207,90 +213,102 @@ export default async function ProjectEditorPage({
             <a href="#ai-designer">AI‑дизайнер</a>
           </aside>
           <div className="editor-layout studio-editor-layout">
-            <form action={saveDesignFromForm} className="design-form">
-              <input name="projectId" type="hidden" value={project.id} />
-              <h2>Содержание версии {gameVersion.version + 1}</h2>
-              <label id="editor-rules">
-                Концепция
-                <textarea name="concept" defaultValue={design.concept} maxLength={1000} required />
-              </label>
-              <label>
-                Цель игры
-                <textarea
-                  name="objective"
-                  defaultValue={design.objective}
-                  maxLength={500}
-                  required
-                />
-              </label>
-              <div className="editor-two-columns" id="editor-board">
-                <label>
-                  Игроки
-                  <input
-                    name="playerCount"
-                    defaultValue={design.playerCount}
-                    maxLength={80}
+            <details className="builder-details">
+              <summary>
+                <span>Ручная настройка</span>
+                <strong>Изменить правила, поле и карточки</strong>
+                <small>Нужно только если хотите поправить первую версию от AI.</small>
+              </summary>
+              <form action={saveDesignFromForm} className="design-form">
+                <input name="projectId" type="hidden" value={project.id} />
+                <h2>Содержание версии {gameVersion.version + 1}</h2>
+                <label id="editor-rules">
+                  Концепция
+                  <textarea
+                    name="concept"
+                    defaultValue={design.concept}
+                    maxLength={1000}
                     required
                   />
                 </label>
                 <label>
-                  Длительность
-                  <input name="duration" defaultValue={design.duration} maxLength={80} required />
-                </label>
-              </div>
-              <label id="editor-cards">
-                Правила
-                <textarea name="rules" defaultValue={design.rules} maxLength={5000} required />
-              </label>
-              <div className="editor-two-columns">
-                <label>
-                  Название поля
-                  <input
-                    name="boardTitle"
-                    defaultValue={design.board.title}
-                    maxLength={120}
+                  Цель игры
+                  <textarea
+                    name="objective"
+                    defaultValue={design.objective}
+                    maxLength={500}
                     required
                   />
                 </label>
-                <label>
-                  Клеток на поле
-                  <input
-                    name="boardSpaces"
-                    defaultValue={design.board.spaces}
-                    inputMode="numeric"
-                    required
-                  />
+                <div className="editor-two-columns" id="editor-board">
+                  <label>
+                    Игроки
+                    <input
+                      name="playerCount"
+                      defaultValue={design.playerCount}
+                      maxLength={80}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Длительность
+                    <input name="duration" defaultValue={design.duration} maxLength={80} required />
+                  </label>
+                </div>
+                <label id="editor-cards">
+                  Правила
+                  <textarea name="rules" defaultValue={design.rules} maxLength={5000} required />
                 </label>
-              </div>
-              <label>
-                Карточки
-                <textarea name="cards" defaultValue={formatCards(design.cards)} required />
-                <span className="field-hint">
-                  Одна карточка на строку: «Название | Текст карточки».
-                </span>
-              </label>
-              <label>
-                Ресурсы и изображения
-                <textarea
-                  name="assets"
-                  defaultValue={formatAssets(design.assets ?? [])}
-                  placeholder="Название | https://example.com/image.jpg | Для поля или карточки"
-                />
-                <span className="field-hint">
-                  Одна ссылка на строку: «Название | URL изображения | Описание».
-                </span>
-              </label>
-              <button className="cta" type="submit">
-                Сохранить новой версией
-              </button>
-              <Link
-                className="secondary-button"
-                href={`/projects/${project.id}/print`}
-                id="editor-print"
-              >
-                Предпросмотр печати A4
-              </Link>
-            </form>
+                <div className="editor-two-columns">
+                  <label>
+                    Название поля
+                    <input
+                      name="boardTitle"
+                      defaultValue={design.board.title}
+                      maxLength={120}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Клеток на поле
+                    <input
+                      name="boardSpaces"
+                      defaultValue={design.board.spaces}
+                      inputMode="numeric"
+                      required
+                    />
+                  </label>
+                </div>
+                <label>
+                  Карточки
+                  <textarea name="cards" defaultValue={formatCards(design.cards)} required />
+                  <span className="field-hint">
+                    Одна карточка на строку: «Название | Текст карточки».
+                  </span>
+                </label>
+                <label>
+                  Ресурсы и изображения
+                  <textarea
+                    name="assets"
+                    defaultValue={formatAssets(design.assets ?? [])}
+                    placeholder="Название | https://example.com/image.jpg | Для поля или карточки"
+                  />
+                  <span className="field-hint">
+                    Одна ссылка на строку: «Название | URL изображения | Описание».
+                  </span>
+                </label>
+                <PendingSubmitButton pendingLabel="Сохраняем новую версию…">
+                  Сохранить новой версией
+                </PendingSubmitButton>
+                <Link
+                  className="secondary-button"
+                  href={`/projects/${project.id}/print`}
+                  id="editor-print"
+                >
+                  Предпросмотр печати A4
+                </Link>
+              </form>
+            </details>
 
             <aside className="game-preview builder-preview" aria-label="Предпросмотр игры">
               <InitialVisualGenerator projectId={project.id} kinds={initialVisualKinds} />
@@ -336,9 +354,9 @@ export default async function ProjectEditorPage({
                     <option value="currency">Игровая валюта</option>
                   </select>
                 </label>
-                <button className="secondary-button" type="submit">
+                <PendingSubmitButton className="secondary-button" pendingLabel="AI рисует визуал…">
                   Создать визуал с AI
-                </button>
+                </PendingSubmitButton>
               </form>
               {design.assets?.length ? (
                 <div className="asset-grid">
@@ -386,9 +404,9 @@ export default async function ProjectEditorPage({
                 <form action={restoreVersionFromForm}>
                   <input name="projectId" type="hidden" value={project.id} />
                   <input name="versionId" type="hidden" value={version.id} />
-                  <button className="secondary-button" type="submit">
+                  <PendingSubmitButton className="secondary-button" pendingLabel="Восстанавливаем…">
                     Восстановить как новую
-                  </button>
+                  </PendingSubmitButton>
                 </form>
               </article>
             ))}
@@ -429,9 +447,7 @@ export default async function ProjectEditorPage({
               required
             />
           </label>
-          <button className="cta" type="submit">
-            Спросить AI
-          </button>
+          <PendingSubmitButton pendingLabel="AI готовит ответ…">Спросить AI</PendingSubmitButton>
         </form>
       </section>
     </main>
