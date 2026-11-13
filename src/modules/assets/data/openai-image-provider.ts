@@ -55,7 +55,7 @@ async function generateCloudflareGameVisual(input: {
   accountId: string;
 }): Promise<Uint8Array> {
   const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(input.accountId)}/ai/run/${encodeURIComponent(input.model)}`,
+    `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(input.accountId)}/ai/run/${input.model}`,
     {
       method: "POST",
       headers: {

@@ -145,10 +145,6 @@ export async function generateGameVisualAction(formData: FormData): Promise<Imag
       if (error.status === 429) {
         return { status: "error", notice: "imageLimit" };
       }
-
-      if (error.status === 400 || error.status === 404) {
-        return { status: "error", notice: "imageSetup" };
-      }
     }
 
     return { status: "error", notice: "imageFailed" };
