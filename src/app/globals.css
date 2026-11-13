@@ -2175,6 +2175,51 @@ textarea {
   font-weight: 900;
 }
 
+.first-generation-control {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.first-generation-control .cta {
+  cursor: pointer;
+}
+
+.first-generation-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 0.9rem;
+  border: 1px solid #d6c8fc;
+  border-radius: 0.85rem;
+  background: #faf8ff;
+}
+
+.first-generation-status .loading-orb {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0.16rem 0.55rem 0 0;
+  color: #7145e5;
+}
+
+.first-generation-status strong {
+  color: #39266f;
+}
+
+.first-generation-status p,
+.generation-error {
+  margin: 0.28rem 0 0;
+  color: #645f76;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.generation-error {
+  border-left: 3px solid #b43649;
+  background: #fff2f3;
+  color: #8d2738;
+  padding: 0.75rem 0.85rem;
+}
+
 .builder-shell {
   display: grid;
   grid-template-columns: 11rem minmax(0, 1fr);

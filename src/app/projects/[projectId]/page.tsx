@@ -11,13 +11,10 @@ import {
 } from "@/modules/game-design/application/get-latest-game-version";
 import { getOwnedProjectById } from "@/modules/projects/application/get-owned-projects";
 
-import {
-  createTemirtauTemplateAction,
-  restoreGameVersionAction,
-  saveGameDesignAction
-} from "./actions";
+import { restoreGameVersionAction, saveGameDesignAction } from "./actions";
 import { generateGameVisualAction } from "./asset-actions";
-import { generateFirstGameAction, sendAiMessageAction } from "./ai-actions";
+import { sendAiMessageAction } from "./ai-actions";
+import { FirstGameGenerator } from "./first-game-generator";
 import { InitialVisualGenerator } from "./initial-visual-generator";
 import { PendingSubmitButton } from "../../pending-submit-button";
 
@@ -49,19 +46,11 @@ const notices: Record<string, string> = {
   imageSetupProvider: "IMAGE_PROVIDER должен быть равен cloudflare или openai.",
   imageCreated: "AI-визуал создан и добавлен как новая версия игры.",
   restored: "Выбранная версия восстановлена как новая версия игры.",
-  saved: "Новая версия игры сохранена.",
-  template: "Шаблон «Темиртау» добавлен как первая версия игры."
+  saved: "Новая версия игры сохранена."
 };
 
 function boardSpaces(spaces: number) {
   return Array.from({ length: spaces }, (_, index) => index + 1);
-}
-
-async function createTemplateFromForm(formData: FormData): Promise<void> {
-  "use server";
-  const result = await createTemirtauTemplateAction(formData);
-  const projectId = formData.get("projectId");
-  redirect(`/projects/${projectId}?notice=${result.status === "success" ? "template" : "failed"}`);
 }
 
 async function saveDesignFromForm(formData: FormData): Promise<void> {
@@ -84,15 +73,6 @@ async function sendAiMessageFromForm(formData: FormData): Promise<void> {
   const projectId = formData.get("projectId");
   redirect(
     `/projects/${projectId}?notice=${result.status === "success" ? "aiSent" : result.notice}`
-  );
-}
-
-async function generateFirstGameFromForm(formData: FormData): Promise<void> {
-  "use server";
-  const result = await generateFirstGameAction(formData);
-  const projectId = formData.get("projectId");
-  redirect(
-    `/projects/${projectId}?notice=${result.status === "success" ? "aiGenerated" : result.notice}`
   );
 }
 
@@ -176,9 +156,9 @@ export default async function ProjectEditorPage({
       </section>
 
       {!design ? (
-        <section className="studio-empty-design" aria-labelledby="template-title">
+        <section className="studio-empty-design" aria-labelledby="first-game-title">
           <span aria-hidden="true">✦</span>
-          <h2 id="template-title">Соберём первую версию игры</h2>
+          <h2 id="first-game-title">AI соберёт вашу первую игру</h2>
           <p>
             Ваша идея сохранена. AI подготовит первую играбельную версию: правила, поле, карточки и
             подходящий набор визуалов. Обычно это занимает до минуты.
@@ -188,18 +168,7 @@ export default async function ProjectEditorPage({
             <li>Собираем поле, правила и карточки</li>
             <li>Оформляем компоненты в едином стиле</li>
           </ol>
-          <form action={generateFirstGameFromForm}>
-            <input name="projectId" type="hidden" value={project.id} />
-            <PendingSubmitButton pendingLabel="AI собирает первую версию…">
-              Создать первую версию с AI
-            </PendingSubmitButton>
-          </form>
-          <form action={createTemplateFromForm}>
-            <input name="projectId" type="hidden" value={project.id} />
-            <PendingSubmitButton pendingLabel="Открываем шаблон…">
-              Открыть шаблон Темиртау
-            </PendingSubmitButton>
-          </form>
+          <FirstGameGenerator projectId={project.id} />
         </section>
       ) : (
         <div className="builder-shell">
