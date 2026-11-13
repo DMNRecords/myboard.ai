@@ -33,7 +33,7 @@ export function InitialVisualGenerator({
     });
   }, [kinds, projectId, router, startTransition]);
 
-  if (!isPending && completed === 0) return null;
+  if (kinds.length === 0 || (!isPending && completed === 0)) return null;
 
   return (
     <p className="notice">
