@@ -36,6 +36,7 @@ export async function generateCloudflareGameDesignerReply(input: {
     `https://api.cloudflare.com/client/v4/accounts/${imageConfig.cloudflareAccountId}/ai/run/@cf/meta/llama-3.1-8b-instruct-fp8`,
     {
       method: "POST",
+      signal: AbortSignal.timeout(35_000),
       headers: {
         Authorization: `Bearer ${imageConfig.apiKey}`,
         "Content-Type": "application/json"
@@ -45,7 +46,7 @@ export async function generateCloudflareGameDesignerReply(input: {
           { role: "system", content: input.instructions },
           { role: "user", content: input.message }
         ],
-        max_tokens: 1200,
+        max_tokens: 700,
         temperature: 0.45
       })
     }
@@ -87,7 +88,7 @@ export async function generateGameDesignerReply(input: {
               { role: "system", content: input.instructions },
               { role: "user", content: input.message }
             ],
-            max_tokens: 1200
+            max_tokens: 700
           }
         }
       : {
@@ -96,7 +97,7 @@ export async function generateGameDesignerReply(input: {
             model: config.model,
             instructions: input.instructions,
             input: input.message,
-            max_output_tokens: 1200,
+            max_output_tokens: 700,
             store: false
           }
         };
@@ -105,6 +106,7 @@ export async function generateGameDesignerReply(input: {
   try {
     response = await fetch(request.endpoint, {
       method: "POST",
+      signal: AbortSignal.timeout(35_000),
       headers: {
         Authorization: `Bearer ${config.apiKey}`,
         "Content-Type": "application/json"

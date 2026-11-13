@@ -47,7 +47,7 @@ export function createFirstGameInstructions(input: {
     "For city games, use only facts supplied by the user. Do not present unverified street names, dates, or local facts as true. Use fictional themed districts or neutral placeholders when needed.",
     "Return ONLY one valid JSON object, no Markdown, no explanation, with this exact shape:",
     '{"concept":"...","objective":"...","playerCount":"...","duration":"...","rules":"...","board":{"title":"...","spaces":24},"cards":[{"title":"...","text":"..."}]}',
-    "Use Russian unless the selected language asks otherwise. Make the rules concise. Include 8 to 12 short thematic cards. Board spaces must be an integer from 8 to 60."
+    "Use Russian unless the selected language asks otherwise. Make the rules concise. Include 4 to 6 short thematic cards. Board spaces must be an integer from 8 to 60."
   ].join("\n");
 }
 
