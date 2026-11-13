@@ -48,7 +48,9 @@ export type AiActionResult =
       notice: "aiFailed" | "aiKey" | "aiLimit" | "aiQuota" | "aiSetup" | "aiModerated";
     };
 
-const dailyPromptLimit = 8;
+// A first game may require a retry while a temporary free provider is busy.
+// Keep enough headroom for a real beta session without making the limit open-ended.
+const dailyPromptLimit = 20;
 
 function startOfCurrentDay(): Date {
   const now = new Date();
