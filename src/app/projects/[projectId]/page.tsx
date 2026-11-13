@@ -19,6 +19,7 @@ import { generateGameVisualAction } from "./asset-actions";
 import { generateFirstGameAction, sendAiMessageAction } from "./ai-actions";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const notices: Record<string, string> = {
   failed: "Не удалось сохранить версию. Проверьте поля и попробуйте ещё раз.",
