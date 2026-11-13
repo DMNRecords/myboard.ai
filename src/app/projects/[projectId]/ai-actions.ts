@@ -19,6 +19,12 @@ import {
   AiProviderRequestError,
   generateGameDesignerReply
 } from "@/modules/ai/data/openai-responses-provider";
+import {
+  createFirstGameInstructions,
+  parseGeneratedGameDesign
+} from "@/modules/ai/domain/game-generation";
+import { createOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
+import { getLatestOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
 
 export type AiActionResult =
@@ -96,6 +102,92 @@ export async function sendAiMessageAction(formData: FormData): Promise<AiActionR
       projectId,
       role: "assistant",
       content: reply
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { status: "success" };
+  } catch (error) {
+    if (error instanceof AiProviderRequestError) {
+      if (error.status === 401 || error.status === 403) {
+        return { status: "error", notice: "aiKey" };
+      }
+
+      if (error.status === 429) {
+        return { status: "error", notice: "aiLimit" };
+      }
+
+      if (error.status === 400 || error.status === 404) {
+        return { status: "error", notice: "aiSetup" };
+      }
+    }
+
+    return { status: "error", notice: "aiFailed" };
+  }
+}
+
+export async function generateFirstGameAction(formData: FormData): Promise<AiActionResult> {
+  const user = await getCurrentUser();
+  const projectId = getFormValue(formData, "projectId");
+
+  if (!user || !projectId || !hasAiProviderConfig()) {
+    return { status: "error", notice: "aiSetup" };
+  }
+
+  try {
+    const database = await createSupabaseServerClient();
+    const project = await getOwnedProject(database, { ownerId: user.id, projectId });
+
+    if (!project?.description) {
+      return { status: "error", notice: "aiFailed" };
+    }
+
+    const review = reviewChatPrompt(project.description);
+
+    if (!review.allowed) {
+      await createModerationEvent(database, { ownerId: user.id, projectId, reason: review.reason });
+      return { status: "error", notice: "aiModerated" };
+    }
+
+    const existingVersion = await getLatestOwnedGameVersion(database, {
+      ownerId: user.id,
+      projectId
+    });
+
+    if (existingVersion) {
+      return { status: "error", notice: "aiFailed" };
+    }
+
+    const promptCount = await countOwnedAiPromptsSince(database, {
+      ownerId: user.id,
+      since: startOfCurrentDay()
+    });
+
+    if (promptCount >= dailyPromptLimit) {
+      return { status: "error", notice: "aiQuota" };
+    }
+
+    const generationPrompt = "Создай первую структурированную версию игры по сохранённой идее.";
+    await createOwnedAiMessage(database, {
+      ownerId: user.id,
+      projectId,
+      role: "user",
+      content: generationPrompt
+    });
+    const reply = await generateGameDesignerReply({
+      instructions: createFirstGameInstructions({
+        projectTitle: project.title,
+        idea: project.description,
+        style: project.style,
+        language: project.language
+      }),
+      message: generationPrompt
+    });
+    const design = parseGeneratedGameDesign(reply);
+    await createOwnedGameVersion(database, { ownerId: user.id, projectId, content: design });
+    await createOwnedAiMessage(database, {
+      ownerId: user.id,
+      projectId,
+      role: "assistant",
+      content: "Первая версия игры создана: правила, поле и карточки уже доступны в конструкторе."
     });
     revalidatePath(`/projects/${projectId}`);
     return { status: "success" };

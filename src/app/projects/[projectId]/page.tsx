@@ -15,13 +15,14 @@ import {
   restoreGameVersionAction,
   saveGameDesignAction
 } from "./actions";
-import { sendAiMessageAction } from "./ai-actions";
+import { generateFirstGameAction, sendAiMessageAction } from "./ai-actions";
 
 export const dynamic = "force-dynamic";
 
 const notices: Record<string, string> = {
   failed: "Не удалось сохранить версию. Проверьте поля и попробуйте ещё раз.",
   aiFailed: "AI не ответил. Проверьте ключ и модель, затем попробуйте ещё раз.",
+  aiGenerated: "AI создал первую версию игры.",
   aiKey: "AI-провайдер отклонил ключ. Проверьте AI_API_KEY в Vercel и выполните Redeploy.",
   aiLimit: "Достигнут лимит бесплатного AI-тарифа. Повторите позже или смените провайдера.",
   aiModerated:
@@ -65,6 +66,15 @@ async function sendAiMessageFromForm(formData: FormData): Promise<void> {
   const projectId = formData.get("projectId");
   redirect(
     `/projects/${projectId}?notice=${result.status === "success" ? "aiSent" : result.notice}`
+  );
+}
+
+async function generateFirstGameFromForm(formData: FormData): Promise<void> {
+  "use server";
+  const result = await generateFirstGameAction(formData);
+  const projectId = formData.get("projectId");
+  redirect(
+    `/projects/${projectId}?notice=${result.status === "success" ? "aiGenerated" : result.notice}`
   );
 }
 
@@ -139,6 +149,12 @@ export default async function ProjectEditorPage({
             Начните диалог с AI‑дизайнером ниже: он уточнит идею и предложит оригинальные правила,
             поле и карточки. Для знакомства также доступен стартовый шаблон Темиртау.
           </p>
+          <form action={generateFirstGameFromForm}>
+            <input name="projectId" type="hidden" value={project.id} />
+            <button className="cta" type="submit">
+              Создать первую версию с AI
+            </button>
+          </form>
           <form action={createTemplateFromForm}>
             <input name="projectId" type="hidden" value={project.id} />
             <button className="cta" type="submit">
