@@ -65,6 +65,18 @@ export async function generateGameDesignerReply(input: {
   message: string;
 }): Promise<string> {
   const config = getAiProviderConfig();
+
+  // `openrouter/free` can spend most of a server-action window waiting for an
+  // available upstream model. When Workers AI is already configured for
+  // visuals, prefer its low-latency text model for the temporary free mode.
+  if (config.provider === "openrouter" && config.model === "openrouter/free") {
+    const cloudflareReply = await generateCloudflareGameDesignerReply(input);
+
+    if (cloudflareReply) {
+      return cloudflareReply;
+    }
+  }
+
   const request =
     config.provider === "openrouter"
       ? {
