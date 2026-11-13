@@ -22,6 +22,7 @@ import {
   generateGameDesignerReply
 } from "@/modules/ai/data/openai-responses-provider";
 import {
+  createEditableStarterGame,
   createFirstGameInstructions,
   parseGeneratedGameDesign
 } from "@/modules/ai/domain/game-generation";
@@ -31,7 +32,7 @@ import type { GameDesign } from "@/modules/game-design/domain/game-design";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
 
 export type AiActionResult =
-  | { status: "success" }
+  | { status: "success"; usedStarter?: boolean }
   | {
       status: "error";
       notice: "aiFailed" | "aiKey" | "aiLimit" | "aiQuota" | "aiSetup" | "aiModerated";
@@ -183,33 +184,44 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
       style: project.style,
       language: project.language
     });
-    const reply = await generateGameDesignerReply({ instructions, message: generationPrompt });
     let design: GameDesign;
+    let usedStarter = false;
 
     try {
+      const reply = await generateGameDesignerReply({ instructions, message: generationPrompt });
       design = parseGeneratedGameDesign(reply);
     } catch {
-      const cloudflareReply = await generateCloudflareGameDesignerReply({
-        instructions,
-        message: generationPrompt
-      });
+      try {
+        const cloudflareReply = await generateCloudflareGameDesignerReply({
+          instructions,
+          message: generationPrompt
+        });
 
-      if (!cloudflareReply) {
-        throw new Error("No structured game response was generated.");
+        if (!cloudflareReply) {
+          throw new Error("No structured game response was generated.");
+        }
+
+        design = parseGeneratedGameDesign(cloudflareReply);
+      } catch {
+        design = createEditableStarterGame({
+          projectTitle: project.title,
+          idea: project.description,
+          language: project.language
+        });
+        usedStarter = true;
       }
-
-      design = parseGeneratedGameDesign(cloudflareReply);
     }
     await createOwnedGameVersion(database, { ownerId: user.id, projectId, content: design });
     await createOwnedAiMessage(database, {
       ownerId: user.id,
       projectId,
       role: "assistant",
-      content:
-        "Первая версия игры создана. Конструктор автоматически начинает собирать визуалы в едином стиле."
+      content: usedStarter
+        ? "Бесплатный AI не успел подготовить полный ответ, поэтому создан редактируемый стартовый черновик."
+        : "Первая версия игры создана. Конструктор автоматически начинает собирать визуалы в едином стиле."
     });
     revalidatePath(`/projects/${projectId}`);
-    return { status: "success" };
+    return { status: "success", usedStarter };
   } catch (error) {
     if (error instanceof AiProviderRequestError || error instanceof ImageProviderRequestError) {
       if (error.status === 401 || error.status === 403) {

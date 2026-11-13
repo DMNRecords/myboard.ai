@@ -44,11 +44,41 @@ export function createFirstGameInstructions(input: {
     `User idea: ${input.idea}.`,
     `Visual tone: ${input.style ?? "classic"}. Language: ${input.language}.`,
     "Invent an original game. Do not copy Monopoly or any protected game mechanics, names, board layout, card text, brands, characters, artwork, or trade dress.",
+    "If the user mentions a protected game, brand, or character, do not refuse and do not mention it in the result. Transform it into an original game using only broad, non-protected themes (for example, a child-friendly city adventure with original characters). You must still return the required JSON.",
     "For city games, use only facts supplied by the user. Do not present unverified street names, dates, or local facts as true. Use fictional themed districts or neutral placeholders when needed.",
     "Return ONLY one valid JSON object, no Markdown, no explanation, with this exact shape:",
     '{"concept":"...","objective":"...","playerCount":"...","duration":"...","rules":"...","board":{"title":"...","spaces":24},"cards":[{"title":"...","text":"..."}]}',
     "Use Russian unless the selected language asks otherwise. Make the rules concise. Include 4 to 6 short thematic cards. Board spaces must be an integer from 8 to 60."
   ].join("\n");
+}
+
+export function createEditableStarterGame(input: {
+  projectTitle: string;
+  idea: string;
+  language: string;
+}): GameDesign {
+  const isRussian = input.language !== "en";
+  const title = isRussian ? "Маршрут приключений" : "Adventure Route";
+
+  return createGameDesign({
+    concept: isRussian
+      ? `Оригинальная семейная игра по мотивам вашей идеи: «${input.projectTitle}». Игроки путешествуют по ярким локациям, знакомятся с оригинальными героями и собирают жетоны приключений.`
+      : `An original family game based on your idea: “${input.projectTitle}”. Players travel through colourful locations, meet original characters, and collect adventure tokens.`,
+    objective: isRussian
+      ? "Собрать четыре жетона приключений и первым добраться до финальной локации."
+      : "Collect four adventure tokens and be the first to reach the final location.",
+    playerCount: isRussian ? "2–4 игрока" : "2–4 players",
+    duration: isRussian ? "25–35 минут" : "25–35 minutes",
+    rules: isRussian
+      ? "В свой ход бросьте кубик, переместитесь по полю и выполните действие клетки. Карточки событий дают выбор: получить жетон, помочь другому игроку или изменить маршрут."
+      : "On your turn, roll a die, move on the board, and resolve the space. Event cards offer a choice: gain a token, help another player, or change the route.",
+    boardTitle: title,
+    boardSpaces: "24",
+    cards: isRussian
+      ? "Добрый проводник | Выберите игрока: вы оба получаете по жетону приключений.\nСекретный маршрут | Передвиньтесь на две клетки вперёд.\nНеожиданная находка | Возьмите жетон приключений.\nКомандное испытание | Вместе придумайте название новой локации и повторите бросок."
+      : "Friendly guide | Choose a player: both of you gain an adventure token.\nSecret route | Move forward two spaces.\nUnexpected discovery | Take an adventure token.\nTeam challenge | Name a new location together and roll again.",
+    assets: ""
+  });
 }
 
 export function parseGeneratedGameDesign(output: string): GameDesign {

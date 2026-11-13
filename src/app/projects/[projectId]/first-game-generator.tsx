@@ -32,7 +32,9 @@ export function FirstGameGenerator({ projectId }: { projectId: string }) {
           return;
         }
 
-        router.replace(`/projects/${projectId}?notice=aiGenerated`);
+        router.replace(
+          `/projects/${projectId}?notice=${result.usedStarter ? "aiStarter" : "aiGenerated"}`
+        );
         router.refresh();
       } catch {
         setError("Соединение с AI прервалось. Нажмите кнопку ещё раз — идея сохранена.");
