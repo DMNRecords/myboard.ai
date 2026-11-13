@@ -26,6 +26,7 @@ import {
   getLatestOwnedGameVersion
 } from "@/modules/game-design/data/supabase-game-version-repository";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
+import { getProjectIdea } from "@/modules/projects/domain/game-brief";
 
 export type ImageActionResult =
   | { status: "success" }
@@ -87,7 +88,8 @@ export async function generateGameVisualAction(formData: FormData): Promise<Imag
       return { status: "error", notice: "imageFailed" };
     }
 
-    const review = reviewChatPrompt(project.description ?? project.title);
+    const projectIdea = getProjectIdea(project.description) || project.title;
+    const review = reviewChatPrompt(projectIdea);
 
     if (!review.allowed) {
       await createModerationEvent(database, { ownerId: user.id, projectId, reason: review.reason });
@@ -114,7 +116,7 @@ export async function generateGameVisualAction(formData: FormData): Promise<Imag
       buildGameVisualPrompt({
         kind,
         projectTitle: project.title,
-        projectIdea: project.description,
+        projectIdea,
         style: project.style,
         design: version.content
       })

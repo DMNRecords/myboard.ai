@@ -3,27 +3,13 @@ import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getOwnedProjects } from "@/modules/projects/application/get-owned-projects";
+import { getProjectIdea } from "@/modules/projects/domain/game-brief";
 
-import {
-  archiveProjectAction,
-  createProjectAction,
-  deleteProjectAction,
-  renameProjectAction
-} from "./actions";
+import { archiveProjectAction, deleteProjectAction, renameProjectAction } from "./actions";
+import { GameCreatorWizard } from "./game-creator-wizard";
 import { signOutAction } from "../login/actions";
-import { PendingSubmitButton } from "../pending-submit-button";
 
 export const dynamic = "force-dynamic";
-
-async function createProjectFromForm(formData: FormData): Promise<void> {
-  "use server";
-  const result = await createProjectAction(formData);
-  redirect(
-    result.status === "success" && result.projectId
-      ? `/projects/${result.projectId}?notice=ideaSaved`
-      : "/projects?notice=failed"
-  );
-}
 
 async function renameProjectFromForm(formData: FormData): Promise<void> {
   "use server";
@@ -97,7 +83,7 @@ export default async function ProjectsPage({
       <section className="studio-projects-intro" aria-labelledby="projects-title">
         <p className="section-kicker">МОЯ ИГРОВАЯ СТУДИЯ</p>
         <h1 id="projects-title">С чего начнём новую игру?</h1>
-        <p>Опишите замысел простыми словами — это станет основой первой версии игры.</p>
+        <p>Сначала задайте идею, затем выберите формат, стиль и компанию — остальное соберёт AI.</p>
         {message ? (
           <p className="notice" role="status">
             {message}
@@ -106,41 +92,7 @@ export default async function ProjectsPage({
       </section>
 
       <section className="idea-start" aria-label="Новая идея игры">
-        <form action={createProjectFromForm} className="idea-start-form">
-          <label>
-            <span>Расскажите, какую игру хотите создать</span>
-            <textarea
-              name="idea"
-              maxLength={2000}
-              placeholder="Например: хочу городскую игру о Темиртау в стиле нуар — с маршрутами, историями и неожиданными событиями."
-              required
-            />
-          </label>
-          <div className="idea-options">
-            <label>
-              Стиль
-              <select name="style" defaultValue="classic">
-                <option value="classic">Классика</option>
-                <option value="noir">Нуар</option>
-                <option value="retro">Ретро</option>
-                <option value="comic">Комикс</option>
-                <option value="anime">Аниме</option>
-                <option value="future">Футуризм</option>
-              </select>
-            </label>
-            <label>
-              Язык
-              <select name="language" defaultValue="ru">
-                <option value="ru">Русский</option>
-                <option value="kk">Қазақша</option>
-                <option value="en">English</option>
-              </select>
-            </label>
-          </div>
-          <PendingSubmitButton className="marketing-primary-cta" pendingLabel="Сохраняем идею…">
-            Создать первую версию <span aria-hidden="true">→</span>
-          </PendingSubmitButton>
-        </form>
+        <GameCreatorWizard />
       </section>
 
       <section className="my-projects-section" aria-label="Проекты">
@@ -169,7 +121,7 @@ export default async function ProjectsPage({
                   </span>
                 </div>
                 <h3>{project.title}</h3>
-                <p>{project.description ?? "Идея игры ещё не описана."}</p>
+                <p>{getProjectIdea(project.description) || "Идея игры ещё не описана."}</p>
                 <Link className="marketing-secondary-cta" href={`/projects/${project.id}`}>
                   Открыть конструктор <span aria-hidden="true">→</span>
                 </Link>

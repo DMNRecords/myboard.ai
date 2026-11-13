@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { generateFirstGameAction } from "./ai-actions";
@@ -14,12 +14,19 @@ const errorMessages = {
   aiSetup: "AI временно не настроен. Нужно проверить подключение провайдера."
 } as const;
 
-export function FirstGameGenerator({ projectId }: { projectId: string }) {
+export function FirstGameGenerator({
+  projectId,
+  autoStart = false
+}: {
+  projectId: string;
+  autoStart?: boolean;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const hasStarted = useRef(false);
 
-  function generate() {
+  const generate = useCallback(() => {
     setError(null);
     startTransition(async () => {
       try {
@@ -40,7 +47,13 @@ export function FirstGameGenerator({ projectId }: { projectId: string }) {
         setError("Соединение с AI прервалось. Нажмите кнопку ещё раз — идея сохранена.");
       }
     });
-  }
+  }, [projectId, router, startTransition]);
+
+  useEffect(() => {
+    if (!autoStart || hasStarted.current) return;
+    hasStarted.current = true;
+    generate();
+  }, [autoStart, generate]);
 
   return (
     <div className="first-generation-control">
@@ -62,7 +75,7 @@ export function FirstGameGenerator({ projectId }: { projectId: string }) {
         </p>
       ) : null}
       <button className="cta" disabled={isPending} onClick={generate} type="button">
-        {isPending ? "AI работает…" : "Создать игру с AI"}
+        {isPending ? "AI работает…" : "Сделать магию!"}
       </button>
     </div>
   );

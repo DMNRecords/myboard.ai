@@ -37,18 +37,20 @@ export function createFirstGameInstructions(input: {
   idea: string;
   style: string | null;
   language: string;
+  brief?: string;
 }): string {
   return [
     "You are MYBOARD.AI, generating the first structured version of an original board game.",
     `Project title: ${input.projectTitle}.`,
     `User idea: ${input.idea}.`,
     `Visual tone: ${input.style ?? "classic"}. Language: ${input.language}.`,
+    `Selected setup: ${input.brief ?? "No additional game setup was selected."}`,
     "Invent an original game. Do not copy Monopoly or any protected game mechanics, names, board layout, card text, brands, characters, artwork, or trade dress.",
     "If the user mentions a protected game, brand, or character, do not refuse and do not mention it in the result. Transform it into an original game using only broad, non-protected themes (for example, a child-friendly city adventure with original characters). You must still return the required JSON.",
     "For city games, use only facts supplied by the user. Do not present unverified street names, dates, or local facts as true. Use fictional themed districts or neutral placeholders when needed.",
     "Return ONLY one valid JSON object, no Markdown, no explanation, with this exact shape:",
     '{"concept":"...","objective":"...","playerCount":"...","duration":"...","rules":"...","board":{"title":"...","spaces":24},"cards":[{"title":"...","text":"..."}]}',
-    "Use Russian unless the selected language asks otherwise. Make the rules concise. Include 4 to 6 short thematic cards. Board spaces must be an integer from 8 to 60."
+    "Use Russian unless the selected language asks otherwise. Make the rules concise. Include 4 to 6 short thematic cards. For a card game, keep the board minimal and focus the rules and components on the cards. Board spaces must be an integer from 8 to 60."
   ].join("\n");
 }
 

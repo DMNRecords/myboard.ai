@@ -16,6 +16,12 @@ import {
   normalizeProjectIdea,
   normalizeProjectTitle
 } from "@/modules/projects/domain/project";
+import {
+  createProjectDescription,
+  isAudienceOption,
+  isGameType,
+  isPlayerOption
+} from "@/modules/projects/domain/game-brief";
 
 export type ProjectActionResult =
   { status: "error"; message: string } | { status: "success"; message: string; projectId?: string };
@@ -66,11 +72,19 @@ export async function createProjectAction(formData: FormData): Promise<ProjectAc
 
   try {
     const idea = normalizeProjectIdea(getFormString(formData, "idea"));
+    const gameType = getFormString(formData, "gameType");
+    const players = getFormString(formData, "players");
+    const audience = getFormString(formData, "audience");
+
+    if (!isGameType(gameType) || !isPlayerOption(players) || !isAudienceOption(audience)) {
+      return invalidProjectResult();
+    }
+
     const project = await createOwnedProject(context.database, {
       ownerId: context.userId,
       title: createProjectTitleFromIdea(idea),
       language,
-      description: idea,
+      description: createProjectDescription(idea, { gameType, players, audience }),
       style: normalizeStyle(getFormString(formData, "style"))
     });
     revalidatePath("/projects");

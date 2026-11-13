@@ -10,6 +10,12 @@ import {
   getLatestGameVersion
 } from "@/modules/game-design/application/get-latest-game-version";
 import { getOwnedProjectById } from "@/modules/projects/application/get-owned-projects";
+import {
+  audienceNames,
+  gameTypeNames,
+  getProjectBrief,
+  getProjectIdea
+} from "@/modules/projects/domain/game-brief";
 
 import { restoreGameVersionAction, saveGameDesignAction } from "./actions";
 import { generateGameVisualAction } from "./asset-actions";
@@ -92,7 +98,7 @@ export default async function ProjectEditorPage({
   searchParams
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ notice?: string | string[] }>;
+  searchParams: Promise<{ autogenerate?: string | string[]; notice?: string | string[] }>;
 }) {
   const user = await getCurrentUser();
 
@@ -115,10 +121,12 @@ export default async function ProjectEditorPage({
 
   const notice = typeof query.notice === "string" ? notices[query.notice] : undefined;
   const design = gameVersion?.content;
+  const projectIdea = getProjectIdea(project.description) || project.title;
+  const projectBrief = getProjectBrief(project.description);
   const initialVisualKinds =
     design && !design.assets?.length
       ? getInitialGameVisualKinds({
-          idea: project.description ?? project.title,
+          idea: projectIdea,
           design
         })
       : [];
@@ -144,9 +152,12 @@ export default async function ProjectEditorPage({
       <section className="studio-editor-intro" id="editor-overview">
         <span className="section-kicker">КОНСТРУКТОР ИГРЫ</span>
         <h1>{project.title}</h1>
-        <p>{project.description ?? "Добавьте идею, чтобы AI помог собрать первую версию игры."}</p>
+        <p>{projectIdea}</p>
         <div className="studio-editor-meta">
           <span>{project.style ? `Стиль: ${project.style}` : "Стиль не выбран"}</span>
+          {projectBrief ? <span>{gameTypeNames[projectBrief.gameType]}</span> : null}
+          {projectBrief ? <span>{projectBrief.players} игроков</span> : null}
+          {projectBrief ? <span>{audienceNames[projectBrief.audience]}</span> : null}
           <span>Версия {gameVersion?.version ?? 0}</span>
           <span>{project.language.toUpperCase()}</span>
         </div>
@@ -170,7 +181,7 @@ export default async function ProjectEditorPage({
             <li>Собираем поле, правила и карточки</li>
             <li>Оформляем компоненты в едином стиле</li>
           </ol>
-          <FirstGameGenerator projectId={project.id} />
+          <FirstGameGenerator autoStart={query.autogenerate === "1"} projectId={project.id} />
         </section>
       ) : (
         <div className="builder-shell">
@@ -276,7 +287,7 @@ export default async function ProjectEditorPage({
                   href={`/projects/${project.id}/print`}
                   id="editor-print"
                 >
-                  Предпросмотр печати A4
+                  Сделать PDF для печати
                 </Link>
               </form>
             </details>

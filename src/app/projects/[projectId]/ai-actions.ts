@@ -29,6 +29,11 @@ import { createOwnedGameVersion } from "@/modules/game-design/data/supabase-game
 import { getLatestOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
 import type { GameDesign } from "@/modules/game-design/domain/game-design";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
+import {
+  describeGameBriefForAi,
+  getProjectBrief,
+  getProjectIdea
+} from "@/modules/projects/domain/game-brief";
 
 export type AiActionResult =
   | { status: "success"; usedStarter?: boolean }
@@ -141,11 +146,13 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
     const database = await createSupabaseServerClient();
     const project = await getOwnedProject(database, { ownerId: user.id, projectId });
 
-    if (!project?.description) {
+    const projectIdea = getProjectIdea(project?.description ?? null);
+
+    if (!project || !projectIdea) {
       return { status: "error", notice: "aiFailed" };
     }
 
-    const review = reviewChatPrompt(project.description);
+    const review = reviewChatPrompt(projectIdea);
 
     if (!review.allowed) {
       await createModerationEvent(database, { ownerId: user.id, projectId, reason: review.reason });
@@ -179,9 +186,10 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
     });
     const instructions = createFirstGameInstructions({
       projectTitle: project.title,
-      idea: project.description,
+      idea: projectIdea,
       style: project.style,
-      language: project.language
+      language: project.language,
+      brief: describeGameBriefForAi(getProjectBrief(project.description))
     });
     let design: GameDesign;
     let usedStarter = false;
@@ -192,7 +200,7 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
     } catch {
       design = createEditableStarterGame({
         projectTitle: project.title,
-        idea: project.description,
+        idea: projectIdea,
         language: project.language
       });
       usedStarter = true;
