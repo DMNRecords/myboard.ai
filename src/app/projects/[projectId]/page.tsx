@@ -15,6 +15,7 @@ import {
   restoreGameVersionAction,
   saveGameDesignAction
 } from "./actions";
+import { generateGameVisualAction } from "./asset-actions";
 import { generateFirstGameAction, sendAiMessageAction } from "./ai-actions";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,15 @@ const notices: Record<string, string> = {
   aiQuota: "Достигнут дневной лимит AI для бета-версии. Попробуйте снова завтра.",
   aiSetup: "AI-провайдер не принял настройки. Проверьте AI_PROVIDER и AI_MODEL в Vercel.",
   aiSent: "AI-ответ добавлен в историю чата.",
+  imageFailed: "Не удалось создать визуал. Повторите попытку немного позже.",
+  imageKey: "Провайдер изображений отклонил ключ. Проверьте IMAGE_API_KEY в Vercel.",
+  imageLimit: "Провайдер изображений временно ограничил запросы. Повторите позже.",
+  imageModerated:
+    "Идея не подходит для генерации визуала. Попробуйте безопасное оригинальное описание.",
+  imageQuota: "Достигнут дневной лимит генерации визуалов для бета-версии.",
+  imageSetup:
+    "Генерация изображений ещё не настроена. Добавьте IMAGE_PROVIDER, IMAGE_API_KEY и IMAGE_MODEL в Vercel.",
+  imageCreated: "AI-визуал создан и добавлен как новая версия игры.",
   restored: "Выбранная версия восстановлена как новая версия игры.",
   saved: "Новая версия игры сохранена.",
   template: "Шаблон «Темиртау» добавлен как первая версия игры."
@@ -75,6 +85,15 @@ async function generateFirstGameFromForm(formData: FormData): Promise<void> {
   const projectId = formData.get("projectId");
   redirect(
     `/projects/${projectId}?notice=${result.status === "success" ? "aiGenerated" : result.notice}`
+  );
+}
+
+async function generateGameVisualFromForm(formData: FormData): Promise<void> {
+  "use server";
+  const result = await generateGameVisualAction(formData);
+  const projectId = formData.get("projectId");
+  redirect(
+    `/projects/${projectId}?notice=${result.status === "success" ? "imageCreated" : result.notice}`
   );
 }
 
@@ -289,6 +308,21 @@ export default async function ProjectEditorPage({
                 ))}
               </div>
               <h3>Ресурсы</h3>
+              <form action={generateGameVisualFromForm} className="visual-generator">
+                <input name="projectId" type="hidden" value={project.id} />
+                <label>
+                  Создать в едином стиле
+                  <select defaultValue="cover" name="kind">
+                    <option value="cover">Обложка игры</option>
+                    <option value="box">Коробка</option>
+                    <option value="board">Игровое поле</option>
+                    <option value="cards">Набор карточек</option>
+                  </select>
+                </label>
+                <button className="secondary-button" type="submit">
+                  Создать визуал с AI
+                </button>
+              </form>
               {design.assets?.length ? (
                 <div className="asset-grid">
                   {design.assets.map((asset) => (
@@ -299,6 +333,8 @@ export default async function ProjectEditorPage({
                       rel="noreferrer"
                       target="_blank"
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- image URLs come from user assets or Supabase Storage. */}
+                      <img alt="" src={asset.url} />
                       <span>{asset.title}</span>
                       <small>{asset.description}</small>
                     </a>
