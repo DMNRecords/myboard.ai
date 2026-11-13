@@ -39,6 +39,10 @@ const notices: Record<string, string> = {
   imageQuota: "Достигнут дневной лимит генерации визуалов для бета-версии.",
   imageSetup:
     "Генерация изображений ещё не настроена. Добавьте IMAGE_PROVIDER, IMAGE_API_KEY и IMAGE_MODEL в Vercel.",
+  imageSetupAccount: "Не найден IMAGE_CLOUDFLARE_ACCOUNT_ID в настройках Preview Vercel.",
+  imageSetupKey: "Не найден IMAGE_API_KEY в настройках Preview Vercel.",
+  imageSetupModel: "Не найден IMAGE_MODEL в настройках Preview Vercel.",
+  imageSetupProvider: "IMAGE_PROVIDER должен быть равен cloudflare или openai.",
   imageCreated: "AI-визуал создан и добавлен как новая версия игры.",
   restored: "Выбранная версия восстановлена как новая версия игры.",
   saved: "Новая версия игры сохранена.",

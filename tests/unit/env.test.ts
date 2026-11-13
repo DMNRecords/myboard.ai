@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAiProviderConfig,
   getImageProviderConfig,
+  getImageProviderConfigIssue,
   getSupabasePublicConfig,
   hasAiProviderConfig,
   hasImageProviderConfig,
@@ -63,6 +64,17 @@ describe("image provider server configuration", () => {
       cloudflareAccountId: "account-id",
       model: "@cf/bytedance/stable-diffusion-xl-lightning"
     });
+  });
+
+  it("identifies a missing image configuration value without exposing secrets", () => {
+    expect(getImageProviderConfigIssue({})).toBe("provider");
+    expect(
+      getImageProviderConfigIssue({
+        IMAGE_PROVIDER: "cloudflare",
+        IMAGE_API_KEY: "token",
+        IMAGE_CLOUDFLARE_ACCOUNT_ID: "account-id"
+      })
+    ).toBe("model");
   });
 });
 

@@ -12,6 +12,7 @@ export type SupabasePublicConfig = {
 
 export type AiProvider = "openai" | "openrouter";
 export type ImageProvider = "cloudflare" | "openai";
+export type ImageProviderConfigIssue = "account" | "key" | "model" | "provider" | null;
 
 function isAiProvider(value: string | undefined): value is AiProvider {
   return value === "openai" || value === "openrouter";
@@ -46,12 +47,32 @@ export function getAiProviderConfig(environment: Environment = process.env): {
 }
 
 export function hasImageProviderConfig(environment: Environment = process.env): boolean {
-  return Boolean(
-    isImageProvider(environment.IMAGE_PROVIDER) &&
-    environment.IMAGE_API_KEY?.trim() &&
-    environment.IMAGE_MODEL?.trim() &&
-    (environment.IMAGE_PROVIDER !== "cloudflare" || environment.IMAGE_CLOUDFLARE_ACCOUNT_ID?.trim())
-  );
+  return getImageProviderConfigIssue(environment) === null;
+}
+
+export function getImageProviderConfigIssue(
+  environment: Environment = process.env
+): ImageProviderConfigIssue {
+  if (!isImageProvider(environment.IMAGE_PROVIDER)) {
+    return "provider";
+  }
+
+  if (!environment.IMAGE_API_KEY?.trim()) {
+    return "key";
+  }
+
+  if (!environment.IMAGE_MODEL?.trim()) {
+    return "model";
+  }
+
+  if (
+    environment.IMAGE_PROVIDER === "cloudflare" &&
+    !environment.IMAGE_CLOUDFLARE_ACCOUNT_ID?.trim()
+  ) {
+    return "account";
+  }
+
+  return null;
 }
 
 export function getImageProviderConfig(environment: Environment = process.env): {

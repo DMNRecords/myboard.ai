@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { hasImageProviderConfig } from "@/lib/env";
+import { getImageProviderConfigIssue } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   ImageProviderRequestError,
@@ -28,7 +28,16 @@ export type ImageActionResult =
   | {
       status: "error";
       notice:
-        "imageFailed" | "imageKey" | "imageLimit" | "imageQuota" | "imageSetup" | "imageModerated";
+        | "imageFailed"
+        | "imageKey"
+        | "imageLimit"
+        | "imageQuota"
+        | "imageSetup"
+        | "imageSetupAccount"
+        | "imageSetupKey"
+        | "imageSetupModel"
+        | "imageSetupProvider"
+        | "imageModerated";
     };
 
 const dailyImageLimit = 4;
@@ -52,8 +61,17 @@ export async function generateGameVisualAction(formData: FormData): Promise<Imag
     return { status: "error", notice: "imageFailed" };
   }
 
-  if (!hasImageProviderConfig()) {
-    return { status: "error", notice: "imageSetup" };
+  const imageConfigIssue = getImageProviderConfigIssue();
+
+  if (imageConfigIssue) {
+    const noticeByIssue = {
+      account: "imageSetupAccount",
+      key: "imageSetupKey",
+      model: "imageSetupModel",
+      provider: "imageSetupProvider"
+    } as const;
+
+    return { status: "error", notice: noticeByIssue[imageConfigIssue] };
   }
 
   try {
