@@ -1,14 +1,63 @@
 import "server-only";
 
-import { getAiProviderConfig } from "@/lib/env";
+import { getAiProviderConfig, getImageProviderConfig, hasImageProviderConfig } from "@/lib/env";
 
 type OpenAiResponse = { output_text?: unknown };
 type OpenRouterResponse = { choices?: Array<{ message?: { content?: unknown } }> };
+type CloudflareResponse = {
+  result?: { response?: unknown };
+};
 
 export class AiProviderRequestError extends Error {
   constructor(public readonly status: number) {
     super("AI provider request failed.");
   }
+}
+
+function shouldUseCloudflareFallback(status: number): boolean {
+  return status === 402 || status === 408 || status === 429 || status >= 500;
+}
+
+async function generateWithCloudflareFallback(input: {
+  instructions: string;
+  message: string;
+}): Promise<string | null> {
+  if (!hasImageProviderConfig()) {
+    return null;
+  }
+
+  const imageConfig = getImageProviderConfig();
+
+  if (imageConfig.provider !== "cloudflare" || !imageConfig.cloudflareAccountId) {
+    return null;
+  }
+
+  const response = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${imageConfig.cloudflareAccountId}/ai/run/@cf/meta/llama-3.1-8b-instruct-fp8`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${imageConfig.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: "system", content: input.instructions },
+          { role: "user", content: input.message }
+        ],
+        max_tokens: 1200,
+        temperature: 0.45
+      })
+    }
+  );
+  const payload = (await response.json()) as CloudflareResponse;
+  const output = payload.result?.response;
+
+  if (!response.ok || typeof output !== "string" || !output.trim()) {
+    throw new AiProviderRequestError(response.status);
+  }
+
+  return output.trim();
 }
 
 export async function generateGameDesignerReply(input: {
@@ -56,9 +105,17 @@ export async function generateGameDesignerReply(input: {
       ? (payload as OpenRouterResponse).choices?.[0]?.message?.content
       : (payload as OpenAiResponse).output_text;
 
-  if (!response.ok || typeof output !== "string" || !output.trim()) {
-    throw new AiProviderRequestError(response.status);
+  if (response.ok && typeof output === "string" && output.trim()) {
+    return output.trim();
   }
 
-  return output.trim();
+  if (config.provider === "openrouter" && shouldUseCloudflareFallback(response.status)) {
+    const fallback = await generateWithCloudflareFallback(input);
+
+    if (fallback) {
+      return fallback;
+    }
+  }
+
+  throw new AiProviderRequestError(response.status);
 }
