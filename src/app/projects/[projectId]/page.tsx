@@ -98,23 +98,32 @@ export default async function ProjectEditorPage({
   const design = gameVersion?.content;
 
   return (
-    <main className="editor-page">
-      <header className="projects-header">
-        <Link className="brand" href="/projects">
-          MYBOARD.AI
+    <main className={`studio-editor-page builder-style-${project.style ?? "classic"}`}>
+      <header className="studio-editor-header">
+        <Link className="marketing-brand" href="/projects">
+          <span aria-hidden="true" className="brand-die">
+            ✦
+          </span>
+          <span>
+            MYBOARD<span>.AI</span>
+            <small>Ваша идея. Ваша игра.</small>
+          </span>
         </Link>
-        <Link className="secondary-button" href="/projects">
+        <span className="studio-editor-project-name">{project.title}</span>
+        <Link className="studio-signout" href="/projects">
           К проектам
         </Link>
       </header>
 
-      <section className="editor-intro">
-        <span className="eyebrow">Редактор игры</span>
+      <section className="studio-editor-intro" id="editor-overview">
+        <span className="section-kicker">КОНСТРУКТОР ИГРЫ</span>
         <h1>{project.title}</h1>
-        <p>
-          Каждое сохранение создаёт отдельную версию. Сейчас доступна версия{" "}
-          {gameVersion?.version ?? 0}.
-        </p>
+        <p>{project.description ?? "Добавьте идею, чтобы AI помог собрать первую версию игры."}</p>
+        <div className="studio-editor-meta">
+          <span>{project.style ? `Стиль: ${project.style}` : "Стиль не выбран"}</span>
+          <span>Версия {gameVersion?.version ?? 0}</span>
+          <span>{project.language.toUpperCase()}</span>
+        </div>
         {notice ? (
           <p className="notice" role="status">
             {notice}
@@ -123,152 +132,177 @@ export default async function ProjectEditorPage({
       </section>
 
       {!design ? (
-        <section className="empty-design" aria-labelledby="template-title">
-          <h2 id="template-title">Начните с оригинального шаблона «Темиртау»</h2>
+        <section className="studio-empty-design" aria-labelledby="template-title">
+          <span aria-hidden="true">✦</span>
+          <h2 id="template-title">Соберём первую версию игры</h2>
           <p>
-            Он создаст правила, маршрут на 24 клетки и первые три карточки — затем всё можно
-            изменить.
+            Начните диалог с AI‑дизайнером ниже: он уточнит идею и предложит оригинальные правила,
+            поле и карточки. Для знакомства также доступен стартовый шаблон Темиртау.
           </p>
           <form action={createTemplateFromForm}>
             <input name="projectId" type="hidden" value={project.id} />
             <button className="cta" type="submit">
-              Добавить шаблон Темиртау
+              Открыть шаблон Темиртау
             </button>
           </form>
         </section>
       ) : (
-        <div className="editor-layout">
-          <form action={saveDesignFromForm} className="design-form">
-            <input name="projectId" type="hidden" value={project.id} />
-            <h2>Содержание версии {gameVersion.version + 1}</h2>
-            <label>
-              Концепция
-              <textarea name="concept" defaultValue={design.concept} maxLength={1000} required />
-            </label>
-            <label>
-              Цель игры
-              <textarea name="objective" defaultValue={design.objective} maxLength={500} required />
-            </label>
-            <div className="editor-two-columns">
+        <div className="builder-shell">
+          <aside className="builder-sidebar" aria-label="Разделы конструктора">
+            <span>РАЗДЕЛЫ ИГРЫ</span>
+            <a href="#editor-overview">Идея и стиль</a>
+            <a href="#editor-rules">Правила</a>
+            <a href="#editor-board">Игровое поле</a>
+            <a href="#editor-cards">Карточки</a>
+            <a href="#editor-print">Печать</a>
+            <a href="#ai-designer">AI‑дизайнер</a>
+          </aside>
+          <div className="editor-layout studio-editor-layout">
+            <form action={saveDesignFromForm} className="design-form">
+              <input name="projectId" type="hidden" value={project.id} />
+              <h2>Содержание версии {gameVersion.version + 1}</h2>
+              <label id="editor-rules">
+                Концепция
+                <textarea name="concept" defaultValue={design.concept} maxLength={1000} required />
+              </label>
               <label>
-                Игроки
-                <input
-                  name="playerCount"
-                  defaultValue={design.playerCount}
-                  maxLength={80}
+                Цель игры
+                <textarea
+                  name="objective"
+                  defaultValue={design.objective}
+                  maxLength={500}
                   required
                 />
               </label>
-              <label>
-                Длительность
-                <input name="duration" defaultValue={design.duration} maxLength={80} required />
+              <div className="editor-two-columns" id="editor-board">
+                <label>
+                  Игроки
+                  <input
+                    name="playerCount"
+                    defaultValue={design.playerCount}
+                    maxLength={80}
+                    required
+                  />
+                </label>
+                <label>
+                  Длительность
+                  <input name="duration" defaultValue={design.duration} maxLength={80} required />
+                </label>
+              </div>
+              <label id="editor-cards">
+                Правила
+                <textarea name="rules" defaultValue={design.rules} maxLength={5000} required />
               </label>
-            </div>
-            <label>
-              Правила
-              <textarea name="rules" defaultValue={design.rules} maxLength={5000} required />
-            </label>
-            <div className="editor-two-columns">
+              <div className="editor-two-columns">
+                <label>
+                  Название поля
+                  <input
+                    name="boardTitle"
+                    defaultValue={design.board.title}
+                    maxLength={120}
+                    required
+                  />
+                </label>
+                <label>
+                  Клеток на поле
+                  <input
+                    name="boardSpaces"
+                    defaultValue={design.board.spaces}
+                    inputMode="numeric"
+                    required
+                  />
+                </label>
+              </div>
               <label>
-                Название поля
-                <input
-                  name="boardTitle"
-                  defaultValue={design.board.title}
-                  maxLength={120}
-                  required
+                Карточки
+                <textarea name="cards" defaultValue={formatCards(design.cards)} required />
+                <span className="field-hint">
+                  Одна карточка на строку: «Название | Текст карточки».
+                </span>
+              </label>
+              <label>
+                Ресурсы и изображения
+                <textarea
+                  name="assets"
+                  defaultValue={formatAssets(design.assets ?? [])}
+                  placeholder="Название | https://example.com/image.jpg | Для поля или карточки"
                 />
+                <span className="field-hint">
+                  Одна ссылка на строку: «Название | URL изображения | Описание».
+                </span>
               </label>
-              <label>
-                Клеток на поле
-                <input
-                  name="boardSpaces"
-                  defaultValue={design.board.spaces}
-                  inputMode="numeric"
-                  required
-                />
-              </label>
-            </div>
-            <label>
-              Карточки
-              <textarea name="cards" defaultValue={formatCards(design.cards)} required />
-              <span className="field-hint">
-                Одна карточка на строку: «Название | Текст карточки».
-              </span>
-            </label>
-            <label>
-              Ресурсы и изображения
-              <textarea
-                name="assets"
-                defaultValue={formatAssets(design.assets ?? [])}
-                placeholder="Название | https://example.com/image.jpg | Для поля или карточки"
-              />
-              <span className="field-hint">
-                Одна ссылка на строку: «Название | URL изображения | Описание».
-              </span>
-            </label>
-            <button className="cta" type="submit">
-              Сохранить новой версией
-            </button>
-            <Link className="secondary-button" href={`/projects/${project.id}/print`}>
-              Предпросмотр печати A4
-            </Link>
-          </form>
+              <button className="cta" type="submit">
+                Сохранить новой версией
+              </button>
+              <Link
+                className="secondary-button"
+                href={`/projects/${project.id}/print`}
+                id="editor-print"
+              >
+                Предпросмотр печати A4
+              </Link>
+            </form>
 
-          <aside className="game-preview" aria-label="Предпросмотр игры">
-            <span className="eyebrow">Предпросмотр</span>
-            <h2>{design.board.title}</h2>
-            <p>{design.concept}</p>
-            <dl className="game-meta">
-              <div>
-                <dt>Игроки</dt>
-                <dd>{design.playerCount}</dd>
-              </div>
-              <div>
-                <dt>Время</dt>
-                <dd>{design.duration}</dd>
-              </div>
-            </dl>
-            <div className="board-preview" aria-label={`Поле из ${design.board.spaces} клеток`}>
-              {boardSpaces(design.board.spaces).map((space) => (
-                <span key={space}>{space}</span>
-              ))}
-            </div>
-            <h3>Карточки</h3>
-            <div className="card-stack">
-              {design.cards.map((card) => (
-                <article className="game-card" key={card.id}>
-                  <span>{card.category}</span>
-                  <h4>{card.title}</h4>
-                  <p>{card.text}</p>
-                </article>
-              ))}
-            </div>
-            <h3>Ресурсы</h3>
-            {design.assets?.length ? (
-              <div className="asset-grid">
-                {design.assets.map((asset) => (
-                  <a
-                    className="game-asset"
-                    href={asset.url}
-                    key={asset.id}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <span>{asset.title}</span>
-                    <small>{asset.description}</small>
-                  </a>
+            <aside className="game-preview builder-preview" aria-label="Предпросмотр игры">
+              <span className="eyebrow">Предпросмотр</span>
+              <h2>{design.board.title}</h2>
+              <p>{design.concept}</p>
+              <dl className="game-meta">
+                <div>
+                  <dt>Игроки</dt>
+                  <dd>{design.playerCount}</dd>
+                </div>
+                <div>
+                  <dt>Время</dt>
+                  <dd>{design.duration}</dd>
+                </div>
+              </dl>
+              <div className="board-preview" aria-label={`Поле из ${design.board.spaces} клеток`}>
+                {boardSpaces(design.board.spaces).map((space) => (
+                  <span key={space}>{space}</span>
                 ))}
               </div>
-            ) : (
-              <p className="empty-assets">
-                Добавьте ссылки на ваши изображения, чтобы использовать их в следующей версии игры.
-              </p>
-            )}
-          </aside>
+              <h3>Карточки</h3>
+              <div className="card-stack">
+                {design.cards.map((card) => (
+                  <article className="game-card" key={card.id}>
+                    <span>{card.category}</span>
+                    <h4>{card.title}</h4>
+                    <p>{card.text}</p>
+                  </article>
+                ))}
+              </div>
+              <h3>Ресурсы</h3>
+              {design.assets?.length ? (
+                <div className="asset-grid">
+                  {design.assets.map((asset) => (
+                    <a
+                      className="game-asset"
+                      href={asset.url}
+                      key={asset.id}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <span>{asset.title}</span>
+                      <small>{asset.description}</small>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="empty-assets">
+                  Добавьте ссылки на ваши изображения, чтобы использовать их в следующей версии
+                  игры.
+                </p>
+              )}
+            </aside>
+          </div>
         </div>
       )}
       {gameVersions.length ? (
-        <section className="version-history" aria-labelledby="version-history-title">
+        <section
+          className="version-history studio-version-history"
+          aria-labelledby="version-history-title"
+        >
           <div>
             <span className="eyebrow">История</span>
             <h2 id="version-history-title">Версии игры</h2>
@@ -292,7 +326,7 @@ export default async function ProjectEditorPage({
           </div>
         </section>
       ) : null}
-      <section className="ai-chat" aria-labelledby="ai-chat-title">
+      <section className="ai-chat studio-ai-chat" id="ai-designer" aria-labelledby="ai-chat-title">
         <div>
           <span className="eyebrow">AI-дизайнер</span>
           <h2 id="ai-chat-title">Обсудите идею игры</h2>
