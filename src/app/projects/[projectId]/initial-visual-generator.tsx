@@ -1,0 +1,43 @@
+"use client";
+
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+
+import { generateGameVisualAction } from "./asset-actions";
+
+export function InitialVisualGenerator({
+  projectId,
+  kinds
+}: {
+  projectId: string;
+  kinds: string[];
+}) {
+  const router = useRouter();
+  const started = useRef(false);
+  const [isPending, startTransition] = useTransition();
+  const [completed, setCompleted] = useState(0);
+
+  useEffect(() => {
+    if (started.current || kinds.length === 0) return;
+    started.current = true;
+    startTransition(async () => {
+      for (const kind of kinds) {
+        const formData = new FormData();
+        formData.set("projectId", projectId);
+        formData.set("kind", kind);
+        const result = await generateGameVisualAction(formData);
+        if (result.status !== "success") break;
+        setCompleted((value) => value + 1);
+      }
+      router.refresh();
+    });
+  }, [kinds, projectId, router, startTransition]);
+
+  if (!isPending && completed === 0) return null;
+
+  return (
+    <p className="notice">
+      AI собирает визуалы: {completed} из {kinds.length}.
+    </p>
+  );
+}

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getAiMessages } from "@/modules/ai/application/get-ai-messages";
 import { formatAssets, formatCards } from "@/modules/game-design/domain/game-design";
+import { getInitialGameVisualKinds } from "@/modules/assets/domain/game-visual";
 import {
   getGameVersions,
   getLatestGameVersion
@@ -17,6 +18,7 @@ import {
 } from "./actions";
 import { generateGameVisualAction } from "./asset-actions";
 import { generateFirstGameAction, sendAiMessageAction } from "./ai-actions";
+import { InitialVisualGenerator } from "./initial-visual-generator";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -130,6 +132,13 @@ export default async function ProjectEditorPage({
 
   const notice = typeof query.notice === "string" ? notices[query.notice] : undefined;
   const design = gameVersion?.content;
+  const initialVisualKinds =
+    design && !design.assets?.length
+      ? getInitialGameVisualKinds({
+          idea: project.description ?? project.title,
+          design
+        })
+      : [];
 
   return (
     <main className={`studio-editor-page builder-style-${project.style ?? "classic"}`}>
@@ -284,6 +293,7 @@ export default async function ProjectEditorPage({
             </form>
 
             <aside className="game-preview builder-preview" aria-label="Предпросмотр игры">
+              <InitialVisualGenerator projectId={project.id} kinds={initialVisualKinds} />
               <span className="eyebrow">Предпросмотр</span>
               <h2>{design.board.title}</h2>
               <p>{design.concept}</p>
