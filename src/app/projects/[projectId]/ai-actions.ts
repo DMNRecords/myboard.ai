@@ -18,7 +18,6 @@ import {
 } from "@/modules/ai/data/supabase-ai-message-repository";
 import {
   AiProviderRequestError,
-  generateCloudflareGameDesignerReply,
   generateGameDesignerReply
 } from "@/modules/ai/data/openai-responses-provider";
 import {
@@ -191,25 +190,12 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
       const reply = await generateGameDesignerReply({ instructions, message: generationPrompt });
       design = parseGeneratedGameDesign(reply);
     } catch {
-      try {
-        const cloudflareReply = await generateCloudflareGameDesignerReply({
-          instructions,
-          message: generationPrompt
-        });
-
-        if (!cloudflareReply) {
-          throw new Error("No structured game response was generated.");
-        }
-
-        design = parseGeneratedGameDesign(cloudflareReply);
-      } catch {
-        design = createEditableStarterGame({
-          projectTitle: project.title,
-          idea: project.description,
-          language: project.language
-        });
-        usedStarter = true;
-      }
+      design = createEditableStarterGame({
+        projectTitle: project.title,
+        idea: project.description,
+        language: project.language
+      });
+      usedStarter = true;
     }
     await createOwnedGameVersion(database, { ownerId: user.id, projectId, content: design });
     await createOwnedAiMessage(database, {
