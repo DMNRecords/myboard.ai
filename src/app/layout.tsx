@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MYBOARD.AI",
-  description: "Персонализированные настольные игры с помощью ИИ."
+  title: "MYBOARD.AI — ваша идея, ваша игра",
+  description: "AI-студия оригинальных настольных игр: от идеи до поля, карточек и печати."
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
