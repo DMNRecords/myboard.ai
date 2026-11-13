@@ -83,6 +83,25 @@ export async function countOwnedAiPromptsSince(
   return count ?? 0;
 }
 
+export async function countOwnedImagePromptsSince(
+  database: DatabaseClient,
+  input: { ownerId: string; since: Date }
+): Promise<number> {
+  const { count, error } = await database
+    .from("game_ai_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", input.ownerId)
+    .eq("role", "user")
+    .like("content", "Создать AI-визуал:%")
+    .gte("created_at", input.since.toISOString());
+
+  if (error) {
+    throw new Error("Unable to count image prompts.");
+  }
+
+  return count ?? 0;
+}
+
 export async function createModerationEvent(
   database: DatabaseClient,
   input: { ownerId: string; projectId: string; reason: string }

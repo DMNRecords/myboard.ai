@@ -12,7 +12,7 @@ import {
 import { uploadGeneratedGameVisual } from "@/modules/assets/data/supabase-game-asset-storage";
 import { buildGameVisualPrompt, isGameVisualKind } from "@/modules/assets/domain/game-visual";
 import {
-  countOwnedAiPromptsSince,
+  countOwnedImagePromptsSince,
   createModerationEvent,
   createOwnedAiMessage
 } from "@/modules/ai/data/supabase-ai-message-repository";
@@ -92,7 +92,7 @@ export async function generateGameVisualAction(formData: FormData): Promise<Imag
       return { status: "error", notice: "imageModerated" };
     }
 
-    const promptCount = await countOwnedAiPromptsSince(database, {
+    const promptCount = await countOwnedImagePromptsSince(database, {
       ownerId: user.id,
       since: startOfCurrentDay()
     });
