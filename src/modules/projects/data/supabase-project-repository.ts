@@ -79,11 +79,23 @@ export async function getOwnedProject(
 
 export async function createOwnedProject(
   database: DatabaseClient,
-  input: { ownerId: string; title: string; language: ProjectLanguage }
+  input: {
+    ownerId: string;
+    title: string;
+    language: ProjectLanguage;
+    description?: string | null;
+    style?: string | null;
+  }
 ): Promise<GameProject> {
   const { data, error } = await database
     .from("game_projects")
-    .insert({ owner_id: input.ownerId, title: input.title, language: input.language })
+    .insert({
+      owner_id: input.ownerId,
+      title: input.title,
+      language: input.language,
+      description: input.description ?? null,
+      style: input.style ?? null
+    })
     .select(projectColumns)
     .single();
 

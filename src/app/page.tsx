@@ -1,26 +1,48 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <div className="page-shell">
-      <header className="site-header">
-        <span className="brand">MYBOARD.AI</span>
-        <span className="stage-label">Stage 1 · App shell</span>
+    <main className="marketing-page marketing-page-compact">
+      <header className="marketing-nav compact-nav">
+        <Link className="marketing-brand" href="/">
+          <span aria-hidden="true" className="brand-die">
+            ✦
+          </span>
+          <span>
+            MYBOARD<span>.AI</span>
+            <small>Ваша идея. Ваша игра.</small>
+          </span>
+        </Link>
       </header>
 
-      <main className="hero">
-        <span className="eyebrow">Настольная игра начинается с идеи</span>
-        <h1>Расскажите историю. Мы поможем превратить её в игру.</h1>
-        <p className="lead">
-          MYBOARD.AI поможет придумать оригинальную настольную игру, её правила, компоненты и
-          материалы для печати.
-        </p>
-        <Link className="cta" href="/login">
-          Создать игру
-        </Link>
-      </main>
+      <section className="compact-hero">
+        <div className="compact-hero-copy">
+          <p className="hero-kicker">AI-СТУДИЯ НАСТОЛЬНЫХ ИГР</p>
+          <h1>
+            Создайте игру <em>своей мечты</em>
+          </h1>
+          <p>
+            Расскажите идею — о городе, семье, друзьях или особенном событии. AI поможет превратить
+            её в оригинальную настольную игру с полем, карточками, правилами и собственным стилем.
+          </p>
+          <Link className="marketing-primary-cta" href="/login">
+            <span aria-hidden="true">✦</span> Создай свою игру!
+          </Link>
+        </div>
 
-      <footer className="site-footer">MYBOARD.AI · персональные игры с ИИ</footer>
-    </div>
+        <div className="compact-game-art">
+          <Image
+            alt="Оригинальный набор городской настольной игры: поле, карточки, фишки и коробка"
+            className="compact-game-image"
+            priority
+            sizes="(max-width: 900px) 100vw, 56vw"
+            src="/images/game-kit-preview.png"
+            width={1440}
+            height={1440}
+          />
+        </div>
+      </section>
+    </main>
   );
 }

@@ -21,6 +21,27 @@ export function normalizeProjectTitle(title: string): string {
   return normalizedTitle;
 }
 
+export function normalizeProjectIdea(idea: string): string {
+  const normalizedIdea = idea.trim();
+
+  if (!normalizedIdea) {
+    throw new Error("Project idea must not be empty.");
+  }
+
+  if (normalizedIdea.length > 2000) {
+    throw new Error("Project idea must not exceed 2000 characters.");
+  }
+
+  return normalizedIdea;
+}
+
+export function createProjectTitleFromIdea(idea: string): string {
+  const normalizedIdea = normalizeProjectIdea(idea);
+  const firstLine = normalizedIdea.split(/[.!?\n]/, 1)[0] ?? normalizedIdea;
+
+  return normalizeProjectTitle(firstLine.slice(0, 120));
+}
+
 export type GameProject = {
   id: string;
   ownerId: string;
@@ -39,6 +60,8 @@ type CreateDraftProjectInput = {
   id: string;
   ownerId: string;
   title: string;
+  description?: string | null;
+  style?: string | null;
   language: ProjectLanguage;
   createdAt: Date;
 };
@@ -47,6 +70,8 @@ export function createDraftProject({
   id,
   ownerId,
   title,
+  description = null,
+  style = null,
   language,
   createdAt
 }: CreateDraftProjectInput): GameProject {
@@ -56,9 +81,9 @@ export function createDraftProject({
     id,
     ownerId,
     title: normalizedTitle,
-    description: null,
+    description,
     language,
-    style: null,
+    style,
     status: "draft",
     version: 1,
     createdAt,

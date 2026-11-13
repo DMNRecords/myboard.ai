@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { hasAiProviderConfig } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ImageProviderRequestError } from "@/modules/assets/data/openai-image-provider";
 import {
   createGameDesignerInstructions,
   normalizeChatPrompt,
@@ -19,16 +20,31 @@ import {
   AiProviderRequestError,
   generateGameDesignerReply
 } from "@/modules/ai/data/openai-responses-provider";
+import {
+  createEditableStarterGame,
+  createFirstGameInstructions,
+  parseGeneratedGameDesign
+} from "@/modules/ai/domain/game-generation";
+import { createOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
+import { getLatestOwnedGameVersion } from "@/modules/game-design/data/supabase-game-version-repository";
+import type { GameDesign } from "@/modules/game-design/domain/game-design";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
+import {
+  describeGameBriefForAi,
+  getProjectBrief,
+  getProjectIdea
+} from "@/modules/projects/domain/game-brief";
 
 export type AiActionResult =
-  | { status: "success" }
+  | { status: "success"; usedStarter?: boolean }
   | {
       status: "error";
       notice: "aiFailed" | "aiKey" | "aiLimit" | "aiQuota" | "aiSetup" | "aiModerated";
     };
 
-const dailyPromptLimit = 8;
+// A first game may require a retry while a temporary free provider is busy.
+// Keep enough headroom for a real beta session without making the limit open-ended.
+const dailyPromptLimit = 20;
 
 function startOfCurrentDay(): Date {
   const now = new Date();
@@ -101,6 +117,107 @@ export async function sendAiMessageAction(formData: FormData): Promise<AiActionR
     return { status: "success" };
   } catch (error) {
     if (error instanceof AiProviderRequestError) {
+      if (error.status === 401 || error.status === 403) {
+        return { status: "error", notice: "aiKey" };
+      }
+
+      if (error.status === 429) {
+        return { status: "error", notice: "aiLimit" };
+      }
+
+      if (error.status === 400 || error.status === 404) {
+        return { status: "error", notice: "aiSetup" };
+      }
+    }
+
+    return { status: "error", notice: "aiFailed" };
+  }
+}
+
+export async function generateFirstGameAction(formData: FormData): Promise<AiActionResult> {
+  const user = await getCurrentUser();
+  const projectId = getFormValue(formData, "projectId");
+
+  if (!user || !projectId || !hasAiProviderConfig()) {
+    return { status: "error", notice: "aiSetup" };
+  }
+
+  try {
+    const database = await createSupabaseServerClient();
+    const project = await getOwnedProject(database, { ownerId: user.id, projectId });
+
+    const projectIdea = getProjectIdea(project?.description ?? null);
+
+    if (!project || !projectIdea) {
+      return { status: "error", notice: "aiFailed" };
+    }
+
+    const review = reviewChatPrompt(projectIdea);
+
+    if (!review.allowed) {
+      await createModerationEvent(database, { ownerId: user.id, projectId, reason: review.reason });
+      return { status: "error", notice: "aiModerated" };
+    }
+
+    const existingVersion = await getLatestOwnedGameVersion(database, {
+      ownerId: user.id,
+      projectId
+    });
+
+    if (existingVersion) {
+      return { status: "error", notice: "aiFailed" };
+    }
+
+    const promptCount = await countOwnedAiPromptsSince(database, {
+      ownerId: user.id,
+      since: startOfCurrentDay()
+    });
+
+    if (promptCount >= dailyPromptLimit) {
+      return { status: "error", notice: "aiQuota" };
+    }
+
+    const generationPrompt = "Создай первую структурированную версию игры по сохранённой идее.";
+    await createOwnedAiMessage(database, {
+      ownerId: user.id,
+      projectId,
+      role: "user",
+      content: generationPrompt
+    });
+    const instructions = createFirstGameInstructions({
+      projectTitle: project.title,
+      idea: projectIdea,
+      style: project.style,
+      language: project.language,
+      brief: describeGameBriefForAi(getProjectBrief(project.description))
+    });
+    let design: GameDesign;
+    let usedStarter = false;
+
+    try {
+      const reply = await generateGameDesignerReply({ instructions, message: generationPrompt });
+      design = parseGeneratedGameDesign(reply);
+    } catch {
+      design = createEditableStarterGame({
+        projectTitle: project.title,
+        idea: projectIdea,
+        language: project.language
+      });
+      usedStarter = true;
+    }
+    await createOwnedGameVersion(database, { ownerId: user.id, projectId, content: design });
+    await createOwnedAiMessage(database, {
+      ownerId: user.id,
+      projectId,
+      role: "assistant",
+      content: usedStarter
+        ? "Бесплатный AI не успел подготовить полный ответ, поэтому создан редактируемый стартовый черновик."
+        : "Первая версия игры создана. Конструктор автоматически начинает собирать визуалы в едином стиле."
+    });
+    revalidatePath(`/projects/${projectId}`);
+    return { status: "success", usedStarter };
+  } catch (error) {
+    if (error instanceof AiProviderRequestError || error instanceof ImageProviderRequestError) {
       if (error.status === 401 || error.status === 403) {
         return { status: "error", notice: "aiKey" };
       }

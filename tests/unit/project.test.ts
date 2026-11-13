@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   archiveProject,
+  createProjectTitleFromIdea,
   createDraftProject,
   isProjectLanguage,
+  normalizeProjectIdea,
   normalizeProjectTitle
 } from "../../src/modules/projects/domain/project";
 
@@ -37,6 +39,13 @@ describe("project domain", () => {
         createdAt
       })
     ).toThrow("Project title must not be empty.");
+  });
+
+  it("keeps a project idea and derives a short initial title", () => {
+    const idea = "Городская игра о Темиртау в стиле нуар. С маршрутами и историями.";
+
+    expect(normalizeProjectIdea(idea)).toBe(idea);
+    expect(createProjectTitleFromIdea(idea)).toBe("Городская игра о Темиртау в стиле нуар");
   });
 
   it("rejects titles longer than the database constraint", () => {

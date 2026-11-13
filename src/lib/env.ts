@@ -11,9 +11,15 @@ export type SupabasePublicConfig = {
 };
 
 export type AiProvider = "openai" | "openrouter";
+export type ImageProvider = "cloudflare" | "openai";
+export type ImageProviderConfigIssue = "account" | "key" | "model" | "provider" | null;
 
 function isAiProvider(value: string | undefined): value is AiProvider {
   return value === "openai" || value === "openrouter";
+}
+
+function isImageProvider(value: string | undefined): value is ImageProvider {
+  return value === "cloudflare" || value === "openai";
 }
 
 export function hasAiProviderConfig(environment: Environment = process.env): boolean {
@@ -37,6 +43,56 @@ export function getAiProviderConfig(environment: Environment = process.env): {
     provider: environment.AI_PROVIDER as AiProvider,
     apiKey: environment.AI_API_KEY as string,
     model: environment.AI_MODEL as string
+  };
+}
+
+export function hasImageProviderConfig(environment: Environment = process.env): boolean {
+  return getImageProviderConfigIssue(environment) === null;
+}
+
+export function getImageProviderConfigIssue(
+  environment: Environment = process.env
+): ImageProviderConfigIssue {
+  if (!isImageProvider(environment.IMAGE_PROVIDER)) {
+    return "provider";
+  }
+
+  if (!environment.IMAGE_API_KEY?.trim()) {
+    return "key";
+  }
+
+  if (!environment.IMAGE_MODEL?.trim()) {
+    return "model";
+  }
+
+  if (
+    environment.IMAGE_PROVIDER === "cloudflare" &&
+    !environment.IMAGE_CLOUDFLARE_ACCOUNT_ID?.trim()
+  ) {
+    return "account";
+  }
+
+  return null;
+}
+
+export function getImageProviderConfig(environment: Environment = process.env): {
+  provider: ImageProvider;
+  apiKey: string;
+  model: string;
+  cloudflareAccountId?: string | undefined;
+} {
+  if (!hasImageProviderConfig(environment)) {
+    throw new Error("Missing image provider server configuration.");
+  }
+
+  return {
+    provider: environment.IMAGE_PROVIDER as ImageProvider,
+    apiKey: environment.IMAGE_API_KEY as string,
+    model: environment.IMAGE_MODEL as string,
+    cloudflareAccountId:
+      environment.IMAGE_PROVIDER === "cloudflare"
+        ? (environment.IMAGE_CLOUDFLARE_ACCOUNT_ID as string)
+        : undefined
   };
 }
 
