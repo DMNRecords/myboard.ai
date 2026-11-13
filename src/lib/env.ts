@@ -11,14 +11,14 @@ export type SupabasePublicConfig = {
 };
 
 export type AiProvider = "openai" | "openrouter";
-export type ImageProvider = "openai";
+export type ImageProvider = "cloudflare" | "openai";
 
 function isAiProvider(value: string | undefined): value is AiProvider {
   return value === "openai" || value === "openrouter";
 }
 
 function isImageProvider(value: string | undefined): value is ImageProvider {
-  return value === "openai";
+  return value === "cloudflare" || value === "openai";
 }
 
 export function hasAiProviderConfig(environment: Environment = process.env): boolean {
@@ -49,7 +49,8 @@ export function hasImageProviderConfig(environment: Environment = process.env): 
   return Boolean(
     isImageProvider(environment.IMAGE_PROVIDER) &&
     environment.IMAGE_API_KEY?.trim() &&
-    environment.IMAGE_MODEL?.trim()
+    environment.IMAGE_MODEL?.trim() &&
+    (environment.IMAGE_PROVIDER !== "cloudflare" || environment.IMAGE_CLOUDFLARE_ACCOUNT_ID?.trim())
   );
 }
 
@@ -57,6 +58,7 @@ export function getImageProviderConfig(environment: Environment = process.env): 
   provider: ImageProvider;
   apiKey: string;
   model: string;
+  cloudflareAccountId?: string | undefined;
 } {
   if (!hasImageProviderConfig(environment)) {
     throw new Error("Missing image provider server configuration.");
@@ -65,7 +67,11 @@ export function getImageProviderConfig(environment: Environment = process.env): 
   return {
     provider: environment.IMAGE_PROVIDER as ImageProvider,
     apiKey: environment.IMAGE_API_KEY as string,
-    model: environment.IMAGE_MODEL as string
+    model: environment.IMAGE_MODEL as string,
+    cloudflareAccountId:
+      environment.IMAGE_PROVIDER === "cloudflare"
+        ? (environment.IMAGE_CLOUDFLARE_ACCOUNT_ID as string)
+        : undefined
   };
 }
 

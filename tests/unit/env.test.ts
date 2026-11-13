@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   getAiProviderConfig,
+  getImageProviderConfig,
   getSupabasePublicConfig,
   hasAiProviderConfig,
+  hasImageProviderConfig,
   hasSupabasePublicConfig
 } from "../../src/lib/env";
 
@@ -36,6 +38,31 @@ describe("getSupabasePublicConfig", () => {
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-key"
       })
     ).toBe(true);
+  });
+});
+
+describe("image provider server configuration", () => {
+  it("accepts Cloudflare only with its account identifier", () => {
+    expect(
+      hasImageProviderConfig({
+        IMAGE_PROVIDER: "cloudflare",
+        IMAGE_API_KEY: "token",
+        IMAGE_MODEL: "@cf/bytedance/stable-diffusion-xl-lightning"
+      })
+    ).toBe(false);
+    expect(
+      getImageProviderConfig({
+        IMAGE_PROVIDER: "cloudflare",
+        IMAGE_API_KEY: "token",
+        IMAGE_CLOUDFLARE_ACCOUNT_ID: "account-id",
+        IMAGE_MODEL: "@cf/bytedance/stable-diffusion-xl-lightning"
+      })
+    ).toEqual({
+      provider: "cloudflare",
+      apiKey: "token",
+      cloudflareAccountId: "account-id",
+      model: "@cf/bytedance/stable-diffusion-xl-lightning"
+    });
   });
 });
 
