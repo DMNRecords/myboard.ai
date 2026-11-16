@@ -34,7 +34,7 @@ describe("game design domain", () => {
         assets: "Панорама | https://example.com/panorama.jpg | Обложка игры"
       })
     ).toMatchObject({
-      schemaVersion: 2,
+      schemaVersion: 3,
       board: { title: "Маршрут", spaces: 18 },
       cards: [
         { id: "card-1", category: "event" },

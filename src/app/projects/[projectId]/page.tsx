@@ -188,11 +188,13 @@ export default async function ProjectEditorPage({
             <a href="#editor-rules">Правила</a>
             {hasBoard ? <a href="#editor-board">Игровое поле</a> : null}
             <a href="#editor-cards">
-              {gameMode === "adventure"
-                ? "Сцены и встречи"
-                : gameMode === "party"
-                  ? "Раунды и задания"
-                  : "Карточки"}
+              {gameMode === "property-economy"
+                ? "Карты и владения"
+                : gameMode === "adventure"
+                  ? "Сцены и встречи"
+                  : gameMode === "party"
+                    ? "Раунды и задания"
+                    : "Карточки"}
             </a>
             <a href="#editor-print">Печать</a>
           </aside>
@@ -254,15 +256,26 @@ export default async function ProjectEditorPage({
                         required
                       />
                     </label>
-                    <label>
-                      Клеток на поле
-                      <input
-                        name="boardSpaces"
-                        defaultValue={design.board.spaces}
-                        inputMode="numeric"
-                        required
-                      />
-                    </label>
+                    {gameMode === "property-economy" ? (
+                      <div className="locked-editor-field">
+                        <span>Клеток на поле</span>
+                        <strong>{design.board.spaces} · игровой каркас зафиксирован</strong>
+                        <small>
+                          AI меняет тему и тексты, но не ломает баланс и печатный комплект.
+                        </small>
+                        <input name="boardSpaces" type="hidden" value={design.board.spaces} />
+                      </div>
+                    ) : (
+                      <label>
+                        Клеток на поле
+                        <input
+                          name="boardSpaces"
+                          defaultValue={design.board.spaces}
+                          inputMode="numeric"
+                          required
+                        />
+                      </label>
+                    )}
                   </div>
                 ) : null}
                 <label>
@@ -291,7 +304,7 @@ export default async function ProjectEditorPage({
                   href={`/projects/${project.id}/print`}
                   id="editor-print"
                 >
-                  Сделать PDF для печати
+                  Подготовить PDF и ведомость
                 </Link>
               </form>
             </details>

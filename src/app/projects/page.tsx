@@ -83,7 +83,10 @@ export default async function ProjectsPage({
       <section className="studio-projects-intro" aria-labelledby="projects-title">
         <p className="section-kicker">МОЯ ИГРОВАЯ СТУДИЯ</p>
         <h1 id="projects-title">С чего начнём новую игру?</h1>
-        <p>Сначала задайте идею, затем выберите формат, стиль и компанию — остальное соберёт AI.</p>
+        <p>
+          Опишите любую идею — AI превратит её в оригинальную экономическую игру с полем,
+          карточками, валютой и готовым комплектом для печати.
+        </p>
         {message ? (
           <p className="notice" role="status">
             {message}

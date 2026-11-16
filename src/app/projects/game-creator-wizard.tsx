@@ -5,39 +5,6 @@ import { useRouter } from "next/navigation";
 
 import { createProjectAction } from "./actions";
 
-const gameTypes = [
-  {
-    id: "board",
-    icon: "◈",
-    title: "Игра с полем",
-    text: "Путешествие по клеткам, события и фишки"
-  },
-  {
-    id: "adventure",
-    icon: "⚔",
-    title: "Приключение",
-    text: "Квест, роли, испытания и сюжет"
-  },
-  {
-    id: "cards",
-    icon: "♠",
-    title: "Карточная",
-    text: "Колода, комбинации и быстрые раунды"
-  },
-  {
-    id: "party",
-    icon: "✦",
-    title: "Для компании",
-    text: "Общение, задания и много смеха"
-  },
-  {
-    id: "strategy",
-    icon: "♜",
-    title: "Стратегия",
-    text: "Ресурсы, выборы и планирование"
-  }
-] as const;
-
 const styles = [
   { id: "classic", title: "Классика", icon: "♔" },
   { id: "retro", title: "Ретро", icon: "✺" },
@@ -55,13 +22,12 @@ const audienceOptions = [
   { id: "humor", title: "Юмор", icon: "☼" }
 ] as const;
 
-const stepTitles = ["Расскажите идею", "Выберите формат", "Задайте настроение"];
+const stepTitles = ["Расскажите идею", "Основа игры", "Задайте настроение"];
 
 export function GameCreatorWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [idea, setIdea] = useState("");
-  const [gameType, setGameType] = useState("board");
   const [style, setStyle] = useState("classic");
   const [players, setPlayers] = useState("2–4");
   const [audience, setAudience] = useState("family");
@@ -85,7 +51,7 @@ export function GameCreatorWizard() {
       try {
         const formData = new FormData();
         formData.set("idea", idea);
-        formData.set("gameType", gameType);
+        formData.set("gameType", "board");
         formData.set("style", style);
         formData.set("players", players);
         formData.set("audience", audience);
@@ -141,25 +107,24 @@ export function GameCreatorWizard() {
       ) : null}
 
       {step === 1 ? (
-        <div className="creator-stage">
+        <div className="creator-stage creator-stage-format">
           <div>
-            <span className="section-kicker">ФОРМАТ ИГРЫ</span>
-            <h2>На что будет похожа игра?</h2>
-            <p>AI возьмёт формат как ориентир, но сделает оригинальные правила и компоненты.</p>
+            <span className="section-kicker">ЭКОНОМИЧЕСКАЯ ИГРА С ПОЛЕМ</span>
+            <h2>Берём готовый игровой каркас</h2>
+            <p>
+              AI сохранит понятную механику: покупка локаций, аренда, наборы, улучшения и
+              тематические карточки. Он изменит тему, названия, валюту и оформление под вашу идею.
+            </p>
           </div>
-          <div className="game-type-grid">
-            {gameTypes.map((type) => (
-              <button
-                className={gameType === type.id ? "choice-card choice-card-active" : "choice-card"}
-                key={type.id}
-                onClick={() => setGameType(type.id)}
-                type="button"
-              >
-                <span aria-hidden="true">{type.icon}</span>
-                <strong>{type.title}</strong>
-                <small>{type.text}</small>
-              </button>
-            ))}
+          <div className="creator-fixed-format" role="note">
+            <span aria-hidden="true">◈</span>
+            <div>
+              <strong>Город, сериал, фантастический мир или бизнес-идея</strong>
+              <small>
+                В результате: поле, 2 колоды карточек, валюта, карточки владения, фишки, улучшения и
+                готовая ведомость для печати.
+              </small>
+            </div>
           </div>
         </div>
       ) : null}

@@ -10,17 +10,43 @@ export type GameAsset = {
   title: string;
   url: string;
   description: string;
+  kind?: "cover" | "box" | "board" | "cards" | "tokens" | "currency" | undefined;
 };
 
-export const gameModes = ["board", "cards", "adventure", "party", "strategy"] as const;
+export type GameVisualDirection = {
+  artDirection: string;
+  palette: string;
+  motif: string;
+};
+
+export const gameModes = [
+  "property-economy",
+  "board",
+  "cards",
+  "adventure",
+  "party",
+  "strategy"
+] as const;
 export type GameMode = (typeof gameModes)[number];
 
 export type GameBoardSpace = {
   id: string;
   name: string;
-  kind: "start" | "property" | "event" | "tax" | "rest" | "goal";
+  kind:
+    | "start"
+    | "property"
+    | "route"
+    | "utility"
+    | "event"
+    | "fee"
+    | "rest"
+    | "inspection"
+    | "tax"
+    | "goal";
+  groupId?: string | undefined;
   price?: number | undefined;
   rent?: number | undefined;
+  upgradeCost?: number | undefined;
 };
 
 export type GameDeck = {
@@ -34,6 +60,13 @@ export type GameEconomy = {
   currencyName: string;
   symbol: string;
   startAmount: number;
+  banknotes?: Array<{ value: number; quantity: number }> | undefined;
+  minorUpgradeName?: string | undefined;
+  minorUpgrades?: number | undefined;
+  majorUpgradeName?: string | undefined;
+  majorUpgrades?: number | undefined;
+  playerTokens?: number | undefined;
+  dice?: number | undefined;
 };
 
 export type GameRole = {
@@ -55,7 +88,7 @@ export type GameResource = {
 };
 
 export type GameDesign = {
-  schemaVersion: 1 | 2;
+  schemaVersion: 1 | 2 | 3;
   /** Legacy saved games omit mode and are treated as board games. */
   mode?: GameMode | undefined;
   concept: string;
@@ -77,6 +110,7 @@ export type GameDesign = {
   roles?: GameRole[] | undefined;
   scenario?: GameScenario | undefined;
   resources?: GameResource[] | undefined;
+  visualDirection?: GameVisualDirection | undefined;
   assets: GameAsset[];
 };
 
@@ -86,6 +120,10 @@ export function isGameMode(value: unknown): value is GameMode {
 
 export function getGameMode(design: GameDesign): GameMode {
   return isGameMode(design.mode) ? design.mode : "board";
+}
+
+export function isPropertyEconomyGame(design: GameDesign): boolean {
+  return getGameMode(design) === "property-economy";
 }
 
 export function hasGameBoard(
@@ -231,9 +269,10 @@ export function createGameDesign(input: {
   roles?: GameRole[] | undefined;
   scenario?: GameScenario | undefined;
   resources?: GameResource[] | undefined;
+  visualDirection?: GameVisualDirection | undefined;
 }): GameDesign {
   const mode = input.mode ?? "board";
-  const requiresBoard = mode === "board" || mode === "strategy";
+  const requiresBoard = mode === "property-economy" || mode === "board" || mode === "strategy";
   const hasBoardInput = Boolean(input.boardTitle?.trim() && input.boardSpaces?.trim());
   const spaces = Number(input.boardSpaces);
 
@@ -245,7 +284,7 @@ export function createGameDesign(input: {
   }
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     mode,
     concept: normalizeText(input.concept, "Concept", 1000),
     objective: normalizeText(input.objective, "Objective", 500),
@@ -265,7 +304,8 @@ export function createGameDesign(input: {
     economy: input.economy,
     roles: input.roles,
     scenario: input.scenario,
-    resources: input.resources
+    resources: input.resources,
+    visualDirection: input.visualDirection
   };
 }
 

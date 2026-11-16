@@ -829,6 +829,413 @@ textarea {
   color: #5c5145;
 }
 
+.print-kit-document {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.print-kit-sheet {
+  position: relative;
+  display: grid;
+  width: min(100%, var(--kit-page-width));
+  min-height: min(100vw, var(--kit-page-height));
+  align-content: start;
+  gap: 6mm;
+  overflow: hidden;
+  margin: 0 auto;
+  background: #fff;
+  padding: 12mm;
+  box-shadow: 0 0.4rem 1.5rem rgb(31 41 55 / 15%);
+}
+
+.print-kit-cover {
+  align-content: center;
+  background-color: #302250;
+  background-position: center;
+  background-size: cover;
+  box-shadow:
+    inset 0 0 0 999px rgb(38 25 69 / 57%),
+    0 0.4rem 1.5rem rgb(31 41 55 / 15%);
+  color: #fff;
+}
+
+.print-kit-cover > span,
+.print-kit-heading > span {
+  color: #a783f5;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.print-kit-cover h1 {
+  max-width: 70%;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.4rem, 7vw, 6rem);
+  line-height: 0.98;
+}
+
+.print-kit-cover p {
+  max-width: 58rem;
+  margin: 0;
+  color: #f3edff;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  line-height: 1.55;
+}
+
+.print-kit-cover dl,
+.print-kit-rules dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  margin: 0;
+}
+
+.print-kit-cover dl div,
+.print-kit-rules dl div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.print-kit-cover dt {
+  color: #d9cef3;
+  font-size: 0.78rem;
+}
+
+.print-kit-cover dd,
+.print-kit-rules dd {
+  margin: 0;
+  font-weight: 900;
+}
+
+.print-kit-heading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.print-kit-heading h2,
+.print-kit-card h3 {
+  margin: 0;
+  color: #2c2440;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.print-kit-heading p,
+.print-kit-rules > p,
+.print-kit-note,
+.print-kit-cut-note {
+  max-width: 72rem;
+  margin: 0;
+  color: #5f566c;
+  line-height: 1.55;
+}
+
+.print-kit-specification table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #302840;
+  font-size: 0.75rem;
+}
+
+.print-kit-specification th,
+.print-kit-specification td {
+  border: 1px solid #d8d0e4;
+  padding: 0.5rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.print-kit-specification th {
+  background: #f1ecfb;
+  font-size: 0.67rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.print-kit-note {
+  border-left: 3px solid #9b78ed;
+  background: #f8f5ff;
+  padding: 0.65rem 0.8rem;
+}
+
+.print-kit-box-sheet {
+  grid-template-rows: auto 1fr;
+}
+
+.print-kit-box-front {
+  display: grid;
+  min-height: 0;
+  align-content: end;
+  gap: 4mm;
+  overflow: hidden;
+  border: 1mm solid #372653;
+  border-radius: 4mm;
+  background: linear-gradient(145deg, rgb(52 34 89 / 5%), rgb(31 18 59 / 72%)), #6947a7;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 999px rgb(35 18 70 / 24%);
+  color: #ffffff;
+  padding: 18mm;
+}
+
+.print-kit-box-front > span,
+.print-kit-box-front small {
+  font-size: 3mm;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.print-kit-box-front strong {
+  max-width: 78%;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 12mm;
+  line-height: 0.98;
+}
+
+.print-kit-board-sheet {
+  justify-items: center;
+}
+
+.print-kit-board-sheet .print-kit-heading,
+.print-kit-board-sheet .print-kit-cut-note {
+  justify-self: stretch;
+}
+
+.print-property-board {
+  display: grid;
+  width: min(100%, var(--kit-board-size));
+  aspect-ratio: 1;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  grid-template-rows: repeat(11, minmax(0, 1fr));
+  border: 1.6mm solid #352454;
+  background: #352454;
+}
+
+.print-property-board-core {
+  display: grid;
+  grid-column: 2 / 11;
+  grid-row: 2 / 11;
+  align-content: center;
+  gap: 2.5mm;
+  overflow: hidden;
+  border: 1mm solid #fbf8ff;
+  background-color: #7252ad;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 999px rgb(38 23 74 / 34%);
+  color: #fff;
+  padding: 12mm;
+  text-align: center;
+}
+
+.print-property-board-core span,
+.print-property-board-core small {
+  font-size: 2.7mm;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.print-property-board-core strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 6mm;
+  line-height: 1.05;
+}
+
+.print-property-space {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: space-between;
+  gap: 0.6mm;
+  border: 0.3mm solid #fff;
+  background: #ede4ff;
+  color: #2e2444;
+  padding: 1.2mm;
+}
+
+.print-property-space > span,
+.print-property-space small {
+  font-size: 1.75mm;
+  font-weight: 800;
+}
+
+.print-property-space strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 2.2mm;
+  line-height: 1.05;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.print-property-space-property {
+  background: #f7ce85;
+}
+
+.print-property-space-route {
+  background: #b9ddf5;
+}
+
+.print-property-space-utility {
+  background: #d4ebbb;
+}
+
+.print-property-space-event {
+  background: #e0caf7;
+}
+
+.print-property-space-fee,
+.print-property-space-inspection {
+  background: #f4aeba;
+}
+
+.print-property-space-start,
+.print-property-space-rest {
+  background: #91dcb6;
+}
+
+.print-kit-rules {
+  align-content: start;
+}
+
+.print-kit-rules > p {
+  font-size: 1rem;
+}
+
+.print-kit-rules dt {
+  color: #746781;
+  font-size: 0.72rem;
+}
+
+.print-kit-card-sheet,
+.print-banknote-sheet,
+.print-token-sheet {
+  align-content: start;
+}
+
+.print-kit-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(63mm, 1fr));
+  gap: 4mm;
+}
+
+.print-kit-card {
+  position: relative;
+  display: grid;
+  min-height: 88mm;
+  align-content: start;
+  gap: 4mm;
+  overflow: hidden;
+  border: 0.35mm dashed #756984;
+  background: linear-gradient(145deg, #fbf9ff, #ece3ff);
+  padding: 7mm;
+}
+
+.print-kit-card > span {
+  color: #7f58ca;
+  font-size: 2.2mm;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.print-kit-card h3 {
+  font-size: 5mm;
+  line-height: 1.05;
+}
+
+.print-kit-card p {
+  margin: 0;
+  color: #4d435d;
+  font-size: 3.1mm;
+  line-height: 1.42;
+}
+
+.print-kit-card > small {
+  position: absolute;
+  right: 6mm;
+  bottom: 5mm;
+  color: #806d9d;
+  font-size: 2.3mm;
+}
+
+.print-ownership-card {
+  background: linear-gradient(145deg, #fffdf7, #fbdb91);
+}
+
+.print-ownership-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2mm;
+  margin: auto 0 0;
+}
+
+.print-ownership-card dl div {
+  display: grid;
+  gap: 0.4mm;
+}
+
+.print-ownership-card dt {
+  color: #71634c;
+  font-size: 2.1mm;
+}
+
+.print-ownership-card dd {
+  margin: 0;
+  color: #47371f;
+  font-size: 3.1mm;
+  font-weight: 900;
+}
+
+.print-banknote-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120mm, 1fr));
+  gap: 4mm;
+}
+
+.print-banknote {
+  display: grid;
+  min-height: 55mm;
+  align-content: space-between;
+  border: 0.35mm dashed #726781;
+  background:
+    radial-gradient(circle at 80% 15%, rgb(255 255 255 / 70%), transparent 22%),
+    linear-gradient(135deg, #d6e7c6, #8cb48d);
+  color: #1e3d32;
+  padding: 6mm;
+}
+
+.print-banknote span,
+.print-banknote small {
+  font-size: 2.4mm;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.print-banknote strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 11mm;
+}
+
+.print-token-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(25mm, 1fr));
+  gap: 3mm;
+}
+
+.print-token-grid span {
+  display: grid;
+  min-height: 25mm;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 0.35mm dashed #756984;
+  border-radius: 50%;
+  background: #f2eaff;
+  color: #51348f;
+  font-size: 2.8mm;
+  font-weight: 900;
+  text-align: center;
+}
+
 @media print {
   @page {
     size: A4;
@@ -864,6 +1271,28 @@ textarea {
   }
 
   .print-card {
+    break-inside: avoid;
+  }
+
+  .print-kit-document {
+    display: block;
+  }
+
+  .print-kit-sheet {
+    width: var(--kit-page-width);
+    min-height: var(--kit-page-height);
+    height: var(--kit-page-height);
+    break-after: page;
+    box-shadow: none;
+  }
+
+  .print-kit-sheet:last-child {
+    break-after: auto;
+  }
+
+  .print-kit-card,
+  .print-banknote,
+  .print-token-grid span {
     break-inside: avoid;
   }
 
@@ -2275,6 +2704,34 @@ textarea {
   border-radius: 0;
 }
 
+.locked-editor-field {
+  display: grid;
+  align-content: start;
+  gap: 0.38rem;
+  border: 1px solid #e1d8f2;
+  border-radius: 0.7rem;
+  background: #faf8ff;
+  color: #594b70;
+  padding: 0.8rem;
+}
+
+.locked-editor-field > span {
+  color: #6e5a8e;
+  font-size: 0.77rem;
+  font-weight: 800;
+}
+
+.locked-editor-field strong {
+  color: #433254;
+  font-size: 0.82rem;
+}
+
+.locked-editor-field small {
+  color: #756988;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .visual-progress {
   display: grid;
   gap: 0.5rem;
@@ -2405,6 +2862,272 @@ textarea {
 
 .format-space-tax {
   background: #f49ea6;
+}
+
+.economic-board-viewer {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.economic-board-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.economic-board-toolbar > div:first-child {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.economic-board-toolbar span,
+.economic-board-inspector > span,
+.economic-card-shelf header span {
+  color: #7654c7;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.economic-board-toolbar strong {
+  color: #362653;
+  font-size: 0.75rem;
+}
+
+.economic-board-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+.economic-board-controls button,
+.economic-card-shelf button {
+  border: 1px solid #d8cef0;
+  background: #fff;
+  color: #483362;
+  cursor: pointer;
+  font: inherit;
+}
+
+.economic-board-controls button {
+  min-width: 1.65rem;
+  border-radius: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 0.24rem 0.35rem;
+}
+
+.economic-board-controls .economic-board-reset {
+  min-width: 0;
+  color: #6f48cc;
+  font-size: 0.62rem;
+}
+
+.economic-board-stage {
+  display: grid;
+  min-height: 18rem;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid #ddd2f2;
+  border-radius: 0.9rem;
+  background:
+    radial-gradient(circle at 50% 45%, rgb(183 154 249 / 25%), transparent 48%),
+    linear-gradient(135deg, #fdfbff, #eee7fb);
+  padding: 0.7rem;
+}
+
+.economic-board-surface {
+  display: grid;
+  width: min(100%, 27rem);
+  aspect-ratio: 1;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  grid-template-rows: repeat(11, minmax(0, 1fr));
+  transition: transform 0.28s ease;
+}
+
+.economic-board-core {
+  display: grid;
+  grid-column: 2 / 11;
+  grid-row: 2 / 11;
+  align-content: center;
+  gap: 0.28rem;
+  overflow: hidden;
+  border: 0.2rem solid #4a356f;
+  border-radius: 0.7rem;
+  background-color: #7052ad;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 999px rgb(42 26 74 / 35%);
+  color: #fff;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.economic-board-core span,
+.economic-board-core small {
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.economic-board-core strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1rem, 4vw, 1.65rem);
+  line-height: 1.08;
+}
+
+.economic-board-cell {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  align-content: space-between;
+  gap: 0.1rem;
+  border: 1px solid #f9f6ff;
+  background: #e8ddff;
+  color: #32234f;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.16rem;
+  text-align: left;
+}
+
+.economic-board-cell b {
+  font-size: 0.43rem;
+  opacity: 0.72;
+}
+
+.economic-board-cell span {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.42rem;
+  font-weight: 900;
+  line-height: 1.05;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.economic-board-cell-property {
+  background: #f4ca81;
+}
+
+.economic-board-cell-route {
+  background: #b7dcf6;
+}
+
+.economic-board-cell-utility {
+  background: #d2eab8;
+}
+
+.economic-board-cell-event {
+  background: #dfc9f7;
+}
+
+.economic-board-cell-fee,
+.economic-board-cell-inspection {
+  background: #f4afb8;
+}
+
+.economic-board-cell-start,
+.economic-board-cell-rest {
+  background: #92dcb5;
+}
+
+.economic-board-cell-selected {
+  position: relative;
+  z-index: 2;
+  outline: 0.16rem solid #7046e8;
+  outline-offset: -0.05rem;
+  box-shadow: 0 0 0 0.18rem rgb(255 255 255 / 85%);
+}
+
+.economic-board-inspector {
+  min-height: 4.9rem;
+  border: 1px solid #ddd2f3;
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0.65rem 0.75rem;
+}
+
+.economic-board-inspector strong {
+  display: block;
+  margin-top: 0.12rem;
+  color: #34264c;
+  font-size: 0.78rem;
+}
+
+.economic-board-inspector p {
+  margin: 0.3rem 0 0;
+  color: #665d75;
+  font-size: 0.7rem;
+  line-height: 1.38;
+}
+
+.economic-card-shelf {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.economic-card-shelf article {
+  min-width: 0;
+  border: 1px solid #ded4f3;
+  border-radius: 0.7rem;
+  background: #fff;
+  padding: 0.55rem;
+}
+
+.economic-card-shelf header {
+  display: grid;
+  gap: 0.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.economic-card-shelf header strong {
+  color: #493466;
+  font-size: 0.7rem;
+}
+
+.economic-card-shelf article > div {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+}
+
+.economic-card-shelf button {
+  display: grid;
+  min-width: 4.4rem;
+  min-height: 4.7rem;
+  align-content: space-between;
+  gap: 0.3rem;
+  border-radius: 0.45rem;
+  padding: 0.4rem;
+  text-align: left;
+}
+
+.economic-card-shelf button small {
+  color: #8463c8;
+  font-size: 0.43rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.economic-card-shelf button strong {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #4a3566;
+  font-size: 0.56rem;
+  line-height: 1.18;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.economic-card-shelf .economic-card-active {
+  border-color: #7046e8;
+  background: #f4efff;
+  box-shadow: 0 0 0 2px rgb(112 70 232 / 13%);
 }
 
 .deck-preview {
@@ -2668,6 +3391,48 @@ textarea {
   margin: 0.45rem 0 0;
   color: #685f7b;
   line-height: 1.5;
+}
+
+.creator-stage-format {
+  gap: 1.15rem;
+}
+
+.creator-fixed-format {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.9rem;
+  border: 1px solid #d8c9ff;
+  border-radius: 1rem;
+  background: radial-gradient(circle at 100% 0%, rgb(151 107 245 / 18%), transparent 32%), #ffffff;
+  color: #3e3156;
+  padding: 1rem;
+}
+
+.creator-fixed-format > span {
+  display: grid;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: #7046e8;
+  color: #ffffff;
+  font-size: 1.3rem;
+}
+
+.creator-fixed-format div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.creator-fixed-format strong {
+  font-size: 0.92rem;
+}
+
+.creator-fixed-format small {
+  color: #6b6180;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .creator-idea-input {

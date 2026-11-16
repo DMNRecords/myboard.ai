@@ -8,8 +8,10 @@ import {
   type GameMode,
   type GameResource,
   type GameRole,
-  type GameScenario
+  type GameScenario,
+  type GameVisualDirection
 } from "../../game-design/domain/game-design";
+import { createPropertyEconomyBlueprint } from "../../game-design/domain/property-economy-blueprint";
 
 type GeneratedCard = { title?: unknown; text?: unknown };
 type GeneratedBoard = {
@@ -28,10 +30,19 @@ type GeneratedGame = {
   board?: GeneratedBoard;
   cards?: GeneratedCard[];
   decks?: Array<{ title?: unknown; purpose?: unknown; cards?: GeneratedCard[] }>;
+  currency?: { currencyName?: unknown; symbol?: unknown };
   economy?: { currencyName?: unknown; symbol?: unknown; startAmount?: unknown };
   roles?: Array<{ name?: unknown; goal?: unknown; ability?: unknown }>;
   scenario?: { title?: unknown; hook?: unknown; stages?: unknown };
   resources?: Array<{ name?: unknown; icon?: unknown; startAmount?: unknown }>;
+  propertyNames?: unknown;
+  eventsDeckTitle?: unknown;
+  opportunitiesDeckTitle?: unknown;
+  minorUpgradeName?: unknown;
+  majorUpgradeName?: unknown;
+  eventCards?: GeneratedCard[];
+  opportunityCards?: GeneratedCard[];
+  visualDirection?: { artDirection?: unknown; palette?: unknown; motif?: unknown };
 };
 
 function stringField(value: unknown, field: string): string {
@@ -161,6 +172,217 @@ function parseResources(value: GeneratedGame["resources"]): GameResource[] | und
   return resources.length ? resources : undefined;
 }
 
+function parseVisualDirection(
+  value: GeneratedGame["visualDirection"]
+): GameVisualDirection | undefined {
+  if (
+    !value ||
+    typeof value.artDirection !== "string" ||
+    typeof value.palette !== "string" ||
+    typeof value.motif !== "string"
+  ) {
+    return undefined;
+  }
+
+  const artDirection = value.artDirection.trim().slice(0, 240);
+  const palette = value.palette.trim().slice(0, 160);
+  const motif = value.motif.trim().slice(0, 160);
+
+  return artDirection && palette && motif ? { artDirection, palette, motif } : undefined;
+}
+
+function textArray(value: unknown, limit: number): string[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function themedEconomyCards(input: {
+  generated?: GeneratedCard[] | undefined;
+  fallback: GameCard[];
+  category: GameCard["category"];
+}): GameCard[] {
+  return input.fallback.map((fallback, index) => {
+    const generated = input.generated?.[index];
+
+    return {
+      id: fallback.id,
+      category: input.category,
+      title:
+        typeof generated?.title === "string" && generated.title.trim()
+          ? generated.title.trim().slice(0, 80)
+          : fallback.title,
+      text:
+        typeof generated?.text === "string" && generated.text.trim()
+          ? generated.text.trim().slice(0, 400)
+          : fallback.text
+    };
+  });
+}
+
+function createPropertyEconomyGame(input: {
+  concept: string;
+  objective: string;
+  playerCount: string;
+  duration: string;
+  rules: string;
+  boardTitle?: string | undefined;
+  propertyNames?: unknown;
+  currencyName?: unknown;
+  currencySymbol?: unknown;
+  eventsDeckTitle?: unknown;
+  opportunitiesDeckTitle?: unknown;
+  minorUpgradeName?: unknown;
+  majorUpgradeName?: unknown;
+  eventCards?: GeneratedCard[] | undefined;
+  opportunityCards?: GeneratedCard[] | undefined;
+  cards?: GeneratedCard[] | undefined;
+  visualDirection?: GameVisualDirection | undefined;
+}): GameDesign {
+  const propertyNames = textArray(input.propertyNames, 22);
+  const boardTitle = input.boardTitle?.trim();
+  const currencyName = typeof input.currencyName === "string" ? input.currencyName.trim() : "";
+  const currencySymbol =
+    typeof input.currencySymbol === "string" ? input.currencySymbol.trim() : "";
+  const eventsDeckTitle =
+    typeof input.eventsDeckTitle === "string" ? input.eventsDeckTitle.trim() : "";
+  const opportunitiesDeckTitle =
+    typeof input.opportunitiesDeckTitle === "string" ? input.opportunitiesDeckTitle.trim() : "";
+  const minorUpgradeName =
+    typeof input.minorUpgradeName === "string" ? input.minorUpgradeName.trim() : "";
+  const majorUpgradeName =
+    typeof input.majorUpgradeName === "string" ? input.majorUpgradeName.trim() : "";
+  const blueprint = createPropertyEconomyBlueprint({
+    boardTitle: boardTitle || undefined,
+    propertyNames: propertyNames.length === 22 ? propertyNames : undefined,
+    currencyName: currencyName || undefined,
+    currencySymbol: currencySymbol || undefined,
+    eventsDeckTitle: eventsDeckTitle || undefined,
+    opportunitiesDeckTitle: opportunitiesDeckTitle || undefined,
+    minorUpgradeName: minorUpgradeName || undefined,
+    majorUpgradeName: majorUpgradeName || undefined
+  });
+  const eventsDeck = blueprint.decks[0];
+  const opportunitiesDeck = blueprint.decks[1];
+
+  if (!eventsDeck || !opportunitiesDeck) {
+    throw new Error("Property economy blueprint must include both card decks.");
+  }
+
+  const eventCards = themedEconomyCards({
+    generated: input.eventCards ?? input.cards?.slice(0, 16),
+    fallback: eventsDeck.cards.map((card) => ({ ...card, category: "event" as const })),
+    category: "event"
+  });
+  const opportunityCards = themedEconomyCards({
+    generated: input.opportunityCards ?? input.cards?.slice(16, 32),
+    fallback: opportunitiesDeck.cards.map((card) => ({ ...card, category: "challenge" as const })),
+    category: "challenge"
+  });
+
+  return {
+    schemaVersion: 3,
+    mode: "property-economy",
+    concept: input.concept.trim(),
+    objective: input.objective.trim(),
+    playerCount: input.playerCount.trim(),
+    duration: input.duration.trim(),
+    rules: input.rules.trim(),
+    board: blueprint.board,
+    cards: [...eventCards, ...opportunityCards],
+    decks: [
+      {
+        id: eventsDeck.id,
+        title: eventsDeck.title,
+        purpose: eventsDeck.purpose,
+        cards: eventCards
+      },
+      {
+        id: opportunitiesDeck.id,
+        title: opportunitiesDeck.title,
+        purpose: opportunitiesDeck.purpose,
+        cards: opportunityCards
+      }
+    ],
+    economy: {
+      currencyName: blueprint.currency.name,
+      symbol: blueprint.currency.symbol,
+      startAmount: blueprint.currency.startAmount,
+      banknotes: blueprint.currency.banknotes,
+      minorUpgradeName: blueprint.components.minorUpgradeName,
+      minorUpgrades: blueprint.components.minorUpgrades,
+      majorUpgradeName: blueprint.components.majorUpgradeName,
+      majorUpgrades: blueprint.components.majorUpgrades,
+      playerTokens: blueprint.components.playerTokens,
+      dice: blueprint.components.dice
+    },
+    visualDirection: input.visualDirection,
+    assets: []
+  };
+}
+
+function createPropertyEconomyStarterGame(input: {
+  projectTitle: string;
+  idea: string;
+  language: string;
+  style?: string | null | undefined;
+  playerCount?: string | undefined;
+}): GameDesign {
+  const isRussian = input.language !== "en";
+  const title = isRussian
+    ? `Карта возможностей: ${input.projectTitle}`
+    : `Opportunity Map: ${input.projectTitle}`;
+  const visualDirection: GameVisualDirection = {
+    artDirection: isRussian
+      ? `Оригинальная иллюстративная настольная игра по теме «${input.projectTitle}»`
+      : `Original illustrated tabletop game themed around “${input.projectTitle}”`,
+    palette:
+      input.style === "noir"
+        ? "графит, сливовый, приглушённое золото"
+        : input.style === "retro"
+          ? "бирюза, коралл, солнечно-жёлтый"
+          : input.style === "future"
+            ? "индиго, лазурный, неоновый лиловый"
+            : "тёплый кремовый, глубокий фиолетовый, золото",
+    motif: isRussian
+      ? "карта возможностей, знаки районов, мягкая фактура бумаги"
+      : "opportunity map, district symbols, soft paper texture"
+  };
+
+  return createPropertyEconomyGame({
+    concept: isRussian
+      ? `Оригинальная тематическая экономическая игра по вашей идее «${input.projectTitle}». Игроки развивают знаковые локации, собирают наборы и создают собственную историю мира игры.`
+      : `An original themed property-trading game based on “${input.projectTitle}”. Players develop locations, build sets, and create their own story in the game's world.`,
+    objective: isRussian
+      ? "Развить самые ценные локации, грамотно распоряжаться валютой и завершить игру с наибольшим капиталом."
+      : "Develop the most valuable locations, manage your currency wisely, and finish with the strongest portfolio.",
+    playerCount: input.playerCount
+      ? `${input.playerCount} ${isRussian ? "игрока" : "players"}`
+      : isRussian
+        ? "2–4 игрока"
+        : "2–4 players",
+    duration: isRussian ? "60–90 минут" : "60–90 minutes",
+    rules: isRussian
+      ? "В свой ход бросьте два кубика и передвиньтесь. На свободной локации решите, покупать ли её; на чужой — заплатите аренду. Собирайте цветовые наборы, чтобы строить мастерские, а затем флагманские объекты. Карты событий и возможностей меняют ход игры. Если валюты не хватает, можно договариваться об обмене или продать улучшение обратно банку."
+      : "On your turn, roll two dice and move. Decide whether to buy an unowned location; pay rent on another player's location. Complete colour sets to build workshops and then flagship locations. Event and opportunity cards change the game. If currency runs short, negotiate a trade or sell an upgrade back to the bank.",
+    boardTitle: title,
+    propertyNames: Array.from({ length: 22 }, (_, index) =>
+      isRussian
+        ? `${input.projectTitle} · локация ${index + 1}`
+        : `${input.projectTitle} · location ${index + 1}`
+    ),
+    eventsDeckTitle: isRussian ? `События «${input.projectTitle}»` : `${input.projectTitle} events`,
+    opportunitiesDeckTitle: isRussian
+      ? `Возможности «${input.projectTitle}»`
+      : `${input.projectTitle} opportunities`,
+    visualDirection
+  });
+}
+
 export function createFirstGameInstructions(input: {
   projectTitle: string;
   idea: string;
@@ -169,19 +391,24 @@ export function createFirstGameInstructions(input: {
   brief?: string | undefined;
   mode?: GameMode | undefined;
 }): string {
+  const selectedMode =
+    input.mode === "board" || input.mode === "property-economy" || !input.mode
+      ? "property-economy"
+      : input.mode;
+
   return [
     "You are MYBOARD.AI, generating the first structured version of an original tabletop game.",
     `Project title: ${input.projectTitle}.`,
     `User idea: ${input.idea}.`,
     `Visual tone: ${input.style ?? "classic"}. Language: ${input.language}.`,
     `Selected setup: ${input.brief ?? "No additional game setup was selected."}`,
-    "Invent an original game. Do not copy Monopoly or any protected game mechanics, names, board layout, card text, brands, characters, artwork, or trade dress.",
+    "Invent an original game. Do not copy Monopoly or any protected names, exact rule text, board layout, card text, brands, characters, artwork, or trade dress. You may use broad property-trading mechanics such as purchasing locations, rent, sets, and upgrades in an original rule system.",
     "If the user mentions a protected game, brand, or character, do not refuse and do not mention it in the result. Transform it into an original game using only broad, non-protected themes (for example, a child-friendly city adventure with original characters). You must still return the required JSON.",
     "For city games, use only facts supplied by the user. Do not present unverified street names, dates, or local facts as true. Use fictional themed districts or neutral placeholders when needed.",
     "Return ONLY one valid JSON object, no Markdown, no explanation, with this exact shape:",
-    '{"mode":"board|cards|adventure|party|strategy","concept":"...","objective":"...","playerCount":"...","duration":"...","rules":"...","board":{"title":"...","spaces":24,"layout":"ring","cells":[{"name":"...","kind":"start|property|event|tax|rest|goal","price":0,"rent":0}]},"cards":[{"title":"...","text":"..."}],"decks":[{"title":"...","purpose":"...","cards":[{"title":"...","text":"..."}]}],"economy":{"currencyName":"...","symbol":"...","startAmount":0},"roles":[{"name":"...","goal":"...","ability":"..."}],"scenario":{"title":"...","hook":"...","stages":["..."]},"resources":[{"name":"...","icon":"...","startAmount":0}]}',
-    `Selected mode is ${input.mode ?? "board"}. For board and strategy modes include board with 12 to 32 named cells; use original themed locations, never claim unverified street names as facts. For cards, adventure, and party modes OMIT board entirely. Cards mode needs decks. Adventure needs scenario and 2 to 4 roles. Strategy needs economy and 2 to 4 resources. Party needs a prompt deck. Return only components useful for the selected mode.`,
-    "Use Russian unless the selected language asks otherwise. Make the rules concise and include 4 to 6 short cards."
+    '{"mode":"property-economy|board|cards|adventure|party|strategy","concept":"...","objective":"...","playerCount":"...","duration":"...","rules":"...","visualDirection":{"artDirection":"...","palette":"...","motif":"..."},"board":{"title":"...","spaces":36,"layout":"ring"},"propertyNames":["... exactly 22 original themed names ..."],"currency":{"currencyName":"...","symbol":"..."},"eventsDeckTitle":"...","opportunitiesDeckTitle":"...","minorUpgradeName":"...","majorUpgradeName":"...","eventCards":[{"title":"...","text":"..."}],"opportunityCards":[{"title":"...","text":"..."}],"cards":[{"title":"...","text":"..."}],"decks":[{"title":"...","purpose":"...","cards":[{"title":"...","text":"..."}]}],"economy":{"currencyName":"...","symbol":"...","startAmount":0},"roles":[{"name":"...","goal":"...","ability":"..."}],"scenario":{"title":"...","hook":"...","stages":["..."]},"resources":[{"name":"...","icon":"...","startAmount":0}]}',
+    `Selected mode is ${selectedMode}. For property-economy mode return exactly 22 propertyNames, exactly 16 eventCards and exactly 16 opportunityCards. The application owns the balance, prices, rent, quantity of components, and board geometry; write only theme-facing names, card text, currency and rule wording. Never use factual street names unless the user supplied them. For board and strategy modes include board with 12 to 32 named cells; use original themed locations. For cards, adventure, and party modes OMIT board entirely. Cards mode needs decks. Adventure needs scenario and 2 to 4 roles. Strategy needs economy and 2 to 4 resources. Party needs a prompt deck. Return only components useful for the selected mode.`,
+    "Use Russian unless the selected language asks otherwise. For property-economy, make all card text concise, original, and family-appropriate when selected."
   ].join("\n");
 }
 
@@ -190,12 +417,17 @@ export function createEditableStarterGame(input: {
   idea: string;
   language: string;
   mode?: GameMode | undefined;
+  style?: string | null | undefined;
   playerCount?: string | undefined;
 }): GameDesign {
+  if (input.mode === "property-economy" || input.mode === "board" || !input.mode) {
+    return createPropertyEconomyStarterGame(input);
+  }
+
   const isRussian = input.language !== "en";
   const mode = input.mode ?? "board";
   const title = isRussian ? "Маршрут приключений" : "Adventure Route";
-  const isBoardMode = mode === "board" || mode === "strategy";
+  const isBoardMode = mode === "strategy";
 
   return createGameDesign({
     concept: isRussian
@@ -278,10 +510,38 @@ export function createEditableStarterGame(input: {
   });
 }
 
-export function parseGeneratedGameDesign(output: string): GameDesign {
+export function parseGeneratedGameDesign(
+  output: string,
+  options: { forcePropertyEconomy?: boolean } = {}
+): GameDesign {
   const parsed = JSON.parse(extractJsonObject(output)) as GeneratedGame;
+  const generatedMode = isGameMode(parsed.mode) ? parsed.mode : "board";
 
-  const mode = isGameMode(parsed.mode) ? parsed.mode : "board";
+  if (options.forcePropertyEconomy || generatedMode === "property-economy") {
+    const currency = parsed.currency ?? parsed.economy;
+
+    return createPropertyEconomyGame({
+      concept: stringField(parsed.concept, "concept"),
+      objective: stringField(parsed.objective, "objective"),
+      playerCount: stringField(parsed.playerCount, "player count"),
+      duration: stringField(parsed.duration, "duration"),
+      rules: stringField(parsed.rules, "rules"),
+      boardTitle: typeof parsed.board?.title === "string" ? parsed.board.title : undefined,
+      propertyNames: parsed.propertyNames,
+      currencyName: currency?.currencyName,
+      currencySymbol: currency?.symbol,
+      eventsDeckTitle: parsed.eventsDeckTitle,
+      opportunitiesDeckTitle: parsed.opportunitiesDeckTitle,
+      minorUpgradeName: parsed.minorUpgradeName,
+      majorUpgradeName: parsed.majorUpgradeName,
+      eventCards: parsed.eventCards,
+      opportunityCards: parsed.opportunityCards,
+      cards: parsed.cards,
+      visualDirection: parseVisualDirection(parsed.visualDirection)
+    });
+  }
+
+  const mode = generatedMode;
   const needsBoard = mode === "board" || mode === "strategy";
 
   if (needsBoard && !parsed.board) {
@@ -303,7 +563,8 @@ export function parseGeneratedGameDesign(output: string): GameDesign {
     economy: parseEconomy(parsed.economy),
     roles: parseRoles(parsed.roles),
     scenario: parseScenario(parsed.scenario),
-    resources: parseResources(parsed.resources)
+    resources: parseResources(parsed.resources),
+    visualDirection: parseVisualDirection(parsed.visualDirection)
   });
 
   if (!parsed.board || !design.board || !Array.isArray(parsed.board.cells)) {

@@ -15,6 +15,7 @@ import {
   dailyImageLimit,
   isGameVisualKind
 } from "@/modules/assets/domain/game-visual";
+import { getGameMode } from "@/modules/game-design/domain/game-design";
 import {
   countOwnedImagePromptsSince,
   createModerationEvent,
@@ -26,7 +27,7 @@ import {
   getLatestOwnedGameVersion
 } from "@/modules/game-design/data/supabase-game-version-repository";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
-import { getProjectBrief, getProjectIdea } from "@/modules/projects/domain/game-brief";
+import { getProjectIdea } from "@/modules/projects/domain/game-brief";
 
 export type ImageActionResult =
   | { status: "success" }
@@ -119,7 +120,7 @@ export async function generateGameVisualAction(formData: FormData): Promise<Imag
         projectIdea,
         style: project.style,
         design: version.content,
-        mode: getProjectBrief(project.description)?.gameType
+        mode: getGameMode(version.content)
       })
     );
     const asset = await uploadGeneratedGameVisual(database, {

@@ -5,7 +5,10 @@ import {
   type GameDesign
 } from "@/modules/game-design/domain/game-design";
 
+import { EconomicBoardCanvas } from "./economic-board-canvas";
+
 const modeLabels = {
+  "property-economy": "Экономическая игра с полем",
   board: "Игра с полем",
   cards: "Карточная игра",
   adventure: "Приключение",
@@ -31,7 +34,16 @@ export function GameWorkspacePreview({ design }: { design: GameDesign }) {
         </strong>
       </div>
 
-      {board ? (
+      {mode === "property-economy" && board ? (
+        <EconomicBoardCanvas
+          assets={design.assets ?? []}
+          cells={board.cells ?? []}
+          concept={design.concept}
+          decks={getGameDecks(design)}
+          economy={design.economy}
+          title={board.title}
+        />
+      ) : board ? (
         <div className="format-board" aria-label={`${board.title}: ${board.spaces} клеток`}>
           <div className="format-board-title">{board.title}</div>
           <div className="format-board-grid">
@@ -108,15 +120,17 @@ export function GameWorkspacePreview({ design }: { design: GameDesign }) {
         </div>
       ) : null}
 
-      <div className="format-card-row">
-        {cards.map((card) => (
-          <article className="format-card" key={card.id}>
-            <span>{card.category}</span>
-            <strong>{card.title}</strong>
-            <p>{card.text}</p>
-          </article>
-        ))}
-      </div>
+      {mode !== "property-economy" ? (
+        <div className="format-card-row">
+          {cards.map((card) => (
+            <article className="format-card" key={card.id}>
+              <span>{card.category}</span>
+              <strong>{card.title}</strong>
+              <p>{card.text}</p>
+            </article>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

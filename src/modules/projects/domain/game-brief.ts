@@ -16,7 +16,7 @@ const briefMarker = "[[MYBOARD_BRIEF:";
 const briefEndMarker = "]]";
 
 export const gameTypeNames: Record<GameType, string> = {
-  board: "Игра с полем",
+  board: "Экономическая игра с полем",
   adventure: "Приключение и квест",
   cards: "Карточная игра",
   party: "Игра для компании",

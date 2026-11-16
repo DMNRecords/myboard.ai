@@ -185,26 +185,29 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
       content: generationPrompt
     });
     const projectBrief = getProjectBrief(project.description);
+    const usePropertyEconomy = !projectBrief || projectBrief.gameType === "board";
+    const requestedMode = usePropertyEconomy ? "property-economy" : projectBrief.gameType;
     const instructions = createFirstGameInstructions({
       projectTitle: project.title,
       idea: projectIdea,
       style: project.style,
       language: project.language,
       brief: describeGameBriefForAi(projectBrief),
-      mode: projectBrief?.gameType
+      mode: requestedMode
     });
     let design: GameDesign;
     let usedStarter = false;
 
     try {
       const reply = await generateGameDesignerReply({ instructions, message: generationPrompt });
-      design = parseGeneratedGameDesign(reply);
+      design = parseGeneratedGameDesign(reply, { forcePropertyEconomy: usePropertyEconomy });
     } catch {
       design = createEditableStarterGame({
         projectTitle: project.title,
         idea: projectIdea,
         language: project.language,
-        mode: projectBrief?.gameType,
+        mode: requestedMode,
+        style: project.style,
         playerCount: projectBrief?.players
       });
       usedStarter = true;

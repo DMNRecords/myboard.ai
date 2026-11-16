@@ -27,6 +27,31 @@ describe("first game generation", () => {
     expect(design.cards).toHaveLength(2);
   });
 
+  it("keeps the economic game blueprint stable while applying AI theme text", () => {
+    const design = parseGeneratedGameDesign(
+      `{
+        "mode": "property-economy",
+        "concept": "Городская инвестиционная игра",
+        "objective": "Развить лучшие районы",
+        "playerCount": "2–4 игрока",
+        "duration": "70 минут",
+        "rules": "Покупайте локации, собирайте наборы и улучшайте их.",
+        "board": { "title": "Ночной город", "spaces": 8 },
+        "propertyNames": ["Район 1", "Район 2"],
+        "currency": { "currencyName": "искры", "symbol": "✦" },
+        "eventCards": [{ "title": "Огни", "text": "Получите 10 искр." }],
+        "opportunityCards": [{ "title": "Инвестиция", "text": "Снизьте стоимость улучшения." }]
+      }`
+    );
+
+    expect(design.mode).toBe("property-economy");
+    expect(design.board?.spaces).toBe(36);
+    expect(design.board?.cells).toHaveLength(36);
+    expect(design.decks?.map((deck) => deck.cards.length)).toEqual([16, 16]);
+    expect(design.economy?.banknotes?.reduce((total, note) => total + note.quantity, 0)).toBe(170);
+    expect(design.economy?.currencyName).toBe("искры");
+  });
+
   it("creates a card game without an unused board", () => {
     const design = parseGeneratedGameDesign(
       `{

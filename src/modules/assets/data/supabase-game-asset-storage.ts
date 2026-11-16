@@ -29,6 +29,7 @@ export async function uploadGeneratedGameVisual(
     id: crypto.randomUUID(),
     title: `AI: ${input.kind}`,
     url: data.publicUrl,
-    description: `Сгенерированный визуал: ${input.kind}`
+    description: `Сгенерированный визуал: ${input.kind}`,
+    kind: input.kind
   };
 }
