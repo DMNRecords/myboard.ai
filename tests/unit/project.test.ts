@@ -2,10 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   archiveProject,
+  createProjectTitleFromIdea,
   createDraftProject,
   isProjectLanguage,
+  normalizeProjectIdea,
   normalizeProjectTitle
 } from "../../src/modules/projects/domain/project";
+import {
+  createProjectDescription,
+  getProjectBrief,
+  getProjectIdea
+} from "../../src/modules/projects/domain/game-brief";
 
 describe("project domain", () => {
   const createdAt = new Date("2026-11-12T10:00:00.000Z");
@@ -39,6 +46,13 @@ describe("project domain", () => {
     ).toThrow("Project title must not be empty.");
   });
 
+  it("keeps a project idea and derives a short initial title", () => {
+    const idea = "Городская игра о Темиртау в стиле нуар. С маршрутами и историями.";
+
+    expect(normalizeProjectIdea(idea)).toBe(idea);
+    expect(createProjectTitleFromIdea(idea)).toBe("Городская игра о Темиртау в стиле нуар");
+  });
+
   it("rejects titles longer than the database constraint", () => {
     expect(() => normalizeProjectTitle("a".repeat(121))).toThrow(
       "Project title must not exceed 120 characters."
@@ -65,6 +79,21 @@ describe("project domain", () => {
       archivedAt,
       updatedAt: archivedAt,
       version: 1
+    });
+  });
+
+  it("keeps the visual creator choices with the idea without exposing them as prose", () => {
+    const description = createProjectDescription("Игра о городе", {
+      gameType: "strategy",
+      players: "3–6",
+      audience: "friends"
+    });
+
+    expect(getProjectIdea(description)).toBe("Игра о городе");
+    expect(getProjectBrief(description)).toEqual({
+      gameType: "strategy",
+      players: "3–6",
+      audience: "friends"
     });
   });
 });

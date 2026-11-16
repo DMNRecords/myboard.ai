@@ -10,25 +10,144 @@ export type GameAsset = {
   title: string;
   url: string;
   description: string;
+  kind?: "cover" | "box" | "board" | "cards" | "tokens" | "currency" | undefined;
+};
+
+export type GameVisualDirection = {
+  artDirection: string;
+  palette: string;
+  motif: string;
+};
+
+export const gameModes = [
+  "property-economy",
+  "board",
+  "cards",
+  "adventure",
+  "party",
+  "strategy"
+] as const;
+export type GameMode = (typeof gameModes)[number];
+
+export type GameBoardSpace = {
+  id: string;
+  name: string;
+  kind:
+    | "start"
+    | "property"
+    | "route"
+    | "utility"
+    | "event"
+    | "fee"
+    | "rest"
+    | "inspection"
+    | "tax"
+    | "goal";
+  groupId?: string | undefined;
+  price?: number | undefined;
+  rent?: number | undefined;
+  upgradeCost?: number | undefined;
+};
+
+export type GameDeck = {
+  id: string;
+  title: string;
+  purpose: string;
+  cards: GameCard[];
+};
+
+export type GameEconomy = {
+  currencyName: string;
+  symbol: string;
+  startAmount: number;
+  banknotes?: Array<{ value: number; quantity: number }> | undefined;
+  minorUpgradeName?: string | undefined;
+  minorUpgrades?: number | undefined;
+  majorUpgradeName?: string | undefined;
+  majorUpgrades?: number | undefined;
+  playerTokens?: number | undefined;
+  dice?: number | undefined;
+};
+
+export type GameRole = {
+  name: string;
+  goal: string;
+  ability: string;
+};
+
+export type GameScenario = {
+  title: string;
+  hook: string;
+  stages: string[];
+};
+
+export type GameResource = {
+  name: string;
+  icon: string;
+  startAmount: number;
 };
 
 export type GameDesign = {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2 | 3;
+  /** Legacy saved games omit mode and are treated as board games. */
+  mode?: GameMode | undefined;
   concept: string;
   objective: string;
   playerCount: string;
   duration: string;
   rules: string;
-  board: {
-    title: string;
-    spaces: number;
-  };
+  board?:
+    | {
+        title: string;
+        spaces: number;
+        layout?: "ring" | "grid" | "path";
+        cells?: GameBoardSpace[] | undefined;
+      }
+    | undefined;
   cards: GameCard[];
+  decks?: GameDeck[] | undefined;
+  economy?: GameEconomy | undefined;
+  roles?: GameRole[] | undefined;
+  scenario?: GameScenario | undefined;
+  resources?: GameResource[] | undefined;
+  visualDirection?: GameVisualDirection | undefined;
   assets: GameAsset[];
 };
 
+export function isGameMode(value: unknown): value is GameMode {
+  return typeof value === "string" && gameModes.some((mode) => mode === value);
+}
+
+export function getGameMode(design: GameDesign): GameMode {
+  return isGameMode(design.mode) ? design.mode : "board";
+}
+
+export function isPropertyEconomyGame(design: GameDesign): boolean {
+  return getGameMode(design) === "property-economy";
+}
+
+export function hasGameBoard(
+  design: GameDesign
+): design is GameDesign & { board: NonNullable<GameDesign["board"]> } {
+  return Boolean(design.board);
+}
+
+export function getGameDecks(design: GameDesign): GameDeck[] {
+  return design.decks?.length
+    ? design.decks
+    : [
+        {
+          id: "main-deck",
+          title: "Основная колода",
+          purpose: "События и задания",
+          cards: design.cards
+        }
+      ];
+}
+
 export const temirtauGameTemplate: GameDesign = {
   schemaVersion: 1,
+  mode: "board",
   concept:
     "Оригинальная семейная игра-путешествие по Темиртау: участники собирают истории города, поддерживают команду и открывают новые места.",
   objective: "Собрать три жетона истории и первым добраться до финальной клетки «Город будущего».",
@@ -140,30 +259,53 @@ export function createGameDesign(input: {
   playerCount: string;
   duration: string;
   rules: string;
-  boardTitle: string;
-  boardSpaces: string;
+  mode?: GameMode | undefined;
+  boardTitle?: string | undefined;
+  boardSpaces?: string | undefined;
   cards: string;
   assets: string;
+  decks?: GameDeck[] | undefined;
+  economy?: GameEconomy | undefined;
+  roles?: GameRole[] | undefined;
+  scenario?: GameScenario | undefined;
+  resources?: GameResource[] | undefined;
+  visualDirection?: GameVisualDirection | undefined;
 }): GameDesign {
+  const mode = input.mode ?? "board";
+  const requiresBoard = mode === "property-economy" || mode === "board" || mode === "strategy";
+  const hasBoardInput = Boolean(input.boardTitle?.trim() && input.boardSpaces?.trim());
   const spaces = Number(input.boardSpaces);
 
-  if (!Number.isInteger(spaces) || spaces < 8 || spaces > 60) {
+  if (
+    (requiresBoard || hasBoardInput) &&
+    (!Number.isInteger(spaces) || spaces < 8 || spaces > 60)
+  ) {
     throw new Error("Board must have between 8 and 60 spaces.");
   }
 
   return {
-    schemaVersion: 1,
+    schemaVersion: 3,
+    mode,
     concept: normalizeText(input.concept, "Concept", 1000),
     objective: normalizeText(input.objective, "Objective", 500),
     playerCount: normalizeText(input.playerCount, "Player count", 80),
     duration: normalizeText(input.duration, "Duration", 80),
     rules: normalizeText(input.rules, "Rules", 5000),
-    board: {
-      title: normalizeText(input.boardTitle, "Board title", 120),
-      spaces
-    },
+    board:
+      requiresBoard || hasBoardInput
+        ? {
+            title: normalizeText(input.boardTitle ?? "", "Board title", 120),
+            spaces
+          }
+        : undefined,
     cards: parseCards(input.cards),
-    assets: parseAssets(input.assets)
+    assets: parseAssets(input.assets),
+    decks: input.decks,
+    economy: input.economy,
+    roles: input.roles,
+    scenario: input.scenario,
+    resources: input.resources,
+    visualDirection: input.visualDirection
   };
 }
 
