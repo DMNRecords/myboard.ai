@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { getAiMessages } from "@/modules/ai/application/get-ai-messages";
 import {
   formatAssets,
   formatCards,
@@ -27,7 +26,6 @@ import {
 
 import { restoreGameVersionAction, saveGameDesignAction } from "./actions";
 import { generateGameVisualAction } from "./asset-actions";
-import { sendAiMessageAction } from "./ai-actions";
 import { FirstGameGenerator } from "./first-game-generator";
 import { GameWorkspacePreview } from "./game-workspace-preview";
 import { InitialVisualGenerator } from "./initial-visual-generator";
@@ -48,7 +46,6 @@ const notices: Record<string, string> = {
     "Этот запрос не подходит для генерации. Попробуйте безопасную оригинальную идею игры.",
   aiQuota: "Достигнут дневной лимит AI для бета-версии. Попробуйте снова завтра.",
   aiSetup: "AI-провайдер не принял настройки. Проверьте AI_PROVIDER и AI_MODEL в Vercel.",
-  aiSent: "AI-ответ добавлен в историю чата.",
   imageFailed: "Не удалось создать визуал. Повторите попытку немного позже.",
   imageKey: "Провайдер изображений отклонил ключ. Проверьте IMAGE_API_KEY в Vercel.",
   imageLimit: "Провайдер изображений временно ограничил запросы. Повторите позже.",
@@ -80,15 +77,6 @@ async function restoreVersionFromForm(formData: FormData): Promise<void> {
   redirect(`/projects/${projectId}?notice=${result.status === "success" ? "restored" : "failed"}`);
 }
 
-async function sendAiMessageFromForm(formData: FormData): Promise<void> {
-  "use server";
-  const result = await sendAiMessageAction(formData);
-  const projectId = formData.get("projectId");
-  redirect(
-    `/projects/${projectId}?notice=${result.status === "success" ? "aiSent" : result.notice}`
-  );
-}
-
 async function generateGameVisualFromForm(formData: FormData): Promise<void> {
   "use server";
   const result = await generateGameVisualAction(formData);
@@ -112,11 +100,10 @@ export default async function ProjectEditorPage({
   }
 
   const { projectId } = await params;
-  const [project, gameVersion, gameVersions, messages, query] = await Promise.all([
+  const [project, gameVersion, gameVersions, query] = await Promise.all([
     getOwnedProjectById(user.id, projectId),
     getLatestGameVersion(user.id, projectId),
     getGameVersions(user.id, projectId),
-    getAiMessages(user.id, projectId),
     searchParams
   ]);
 
@@ -208,7 +195,6 @@ export default async function ProjectEditorPage({
                   : "Карточки"}
             </a>
             <a href="#editor-print">Печать</a>
-            <a href="#ai-designer">AI‑дизайнер</a>
           </aside>
           <div className="editor-layout studio-editor-layout">
             <details className="builder-details">
@@ -408,43 +394,6 @@ export default async function ProjectEditorPage({
           </div>
         </section>
       ) : null}
-      <section className="ai-chat studio-ai-chat" id="ai-designer" aria-labelledby="ai-chat-title">
-        <div>
-          <span className="eyebrow">AI-дизайнер</span>
-          <h2 id="ai-chat-title">Обсудите идею игры</h2>
-          <p>
-            AI предложит оригинальные механики, правила или следующий шаг. Ответы не меняют игру без
-            вашего сохранения.
-          </p>
-        </div>
-        <div className="chat-history" aria-live="polite">
-          {messages.length ? (
-            messages.map((message) => (
-              <article className={`chat-message chat-message-${message.role}`} key={message.id}>
-                <strong>{message.role === "user" ? "Вы" : "MYBOARD AI"}</strong>
-                <p>{message.content}</p>
-              </article>
-            ))
-          ) : (
-            <p className="empty-assets">
-              Например: «Придумай три оригинальные механики для семейной игры о Темиртау».
-            </p>
-          )}
-        </div>
-        <form action={sendAiMessageFromForm} className="chat-form">
-          <input name="projectId" type="hidden" value={project.id} />
-          <label>
-            Сообщение для AI
-            <textarea
-              name="message"
-              maxLength={2000}
-              placeholder="Опишите идею или задайте вопрос…"
-              required
-            />
-          </label>
-          <PendingSubmitButton pendingLabel="AI готовит ответ…">Спросить AI</PendingSubmitButton>
-        </form>
-      </section>
     </main>
   );
 }
