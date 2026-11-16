@@ -184,12 +184,14 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
       role: "user",
       content: generationPrompt
     });
+    const projectBrief = getProjectBrief(project.description);
     const instructions = createFirstGameInstructions({
       projectTitle: project.title,
       idea: projectIdea,
       style: project.style,
       language: project.language,
-      brief: describeGameBriefForAi(getProjectBrief(project.description))
+      brief: describeGameBriefForAi(projectBrief),
+      mode: projectBrief?.gameType
     });
     let design: GameDesign;
     let usedStarter = false;
@@ -201,7 +203,9 @@ export async function generateFirstGameAction(formData: FormData): Promise<AiAct
       design = createEditableStarterGame({
         projectTitle: project.title,
         idea: projectIdea,
-        language: project.language
+        language: project.language,
+        mode: projectBrief?.gameType,
+        playerCount: projectBrief?.players
       });
       usedStarter = true;
     }

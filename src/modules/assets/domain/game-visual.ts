@@ -1,4 +1,4 @@
-import type { GameDesign } from "@/modules/game-design/domain/game-design";
+import { getGameMode, type GameDesign, type GameMode } from "../../game-design/domain/game-design";
 
 export const gameVisualKinds = ["cover", "box", "board", "cards", "tokens", "currency"] as const;
 export type GameVisualKind = (typeof gameVisualKinds)[number];
@@ -8,25 +8,41 @@ export function isGameVisualKind(value: string): value is GameVisualKind {
   return gameVisualKinds.some((kind) => kind === value);
 }
 
+export function getAvailableVisualKinds(mode: GameMode): GameVisualKind[] {
+  if (mode === "cards" || mode === "adventure" || mode === "party") {
+    return ["cover", "box", "cards", "tokens"];
+  }
+
+  return mode === "strategy"
+    ? ["cover", "box", "board", "cards", "tokens", "currency"]
+    : ["cover", "box", "board", "cards", "tokens"];
+}
+
 export function getInitialGameVisualKinds(input: {
   idea: string;
   design: GameDesign;
+  mode?: GameMode | undefined;
 }): GameVisualKind[] {
   const source = `${input.idea} ${input.design.concept} ${input.design.rules}`.toLocaleLowerCase(
     "ru-RU"
   );
-  const isCardGame = /карточн(ая|ый|ые)? игра|игральн|покер|колод|card game/.test(
-    input.idea.toLocaleLowerCase("ru-RU")
-  );
+  const mode = input.mode ?? getGameMode(input.design);
+  const isCardGame =
+    mode === "cards" ||
+    /карточн(ая|ый|ые)? игра|игральн|покер|колод|card game/.test(
+      input.idea.toLocaleLowerCase("ru-RU")
+    );
   const usesCurrency = /валют|деньг|монет|банк|экономик|торгов/.test(source);
 
   if (isCardGame) {
-    return ["cover", "box", "cards", "tokens"];
+    return getAvailableVisualKinds("cards");
   }
 
-  return usesCurrency
-    ? ["cover", "box", "board", "cards", "tokens", "currency"]
-    : ["cover", "box", "board", "cards", "tokens"];
+  if (mode === "adventure" || mode === "party") {
+    return getAvailableVisualKinds(mode);
+  }
+
+  return usesCurrency ? getAvailableVisualKinds("strategy") : getAvailableVisualKinds(mode);
 }
 
 export function buildGameVisualPrompt(input: {
@@ -35,6 +51,7 @@ export function buildGameVisualPrompt(input: {
   projectIdea: string | null;
   style: string | null;
   design: GameDesign;
+  mode?: GameMode | undefined;
 }): string {
   const subject: Record<GameVisualKind, string> = {
     board: "a top-down illustrated game board with a unique route and game spaces",
@@ -47,7 +64,7 @@ export function buildGameVisualPrompt(input: {
 
   return [
     `Create ${subject[input.kind]} for an original board game project.`,
-    `Project title: ${input.projectTitle}. Concept: ${input.design.concept}.`,
+    `Project title: ${input.projectTitle}. Mode: ${input.mode ?? getGameMode(input.design)}. Concept: ${input.design.concept}.`,
     `User idea: ${input.projectIdea ?? "not provided"}. Visual style: ${input.style ?? "classic"}.`,
     "Use one coherent art direction across every asset: consistent palette, materials, iconography, and mood.",
     "Make it print-ready, detailed, polished, and family-friendly unless the idea clearly requests a permitted different tone.",

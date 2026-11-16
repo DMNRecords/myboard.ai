@@ -3,8 +3,16 @@ import { notFound, redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { getAiMessages } from "@/modules/ai/application/get-ai-messages";
-import { formatAssets, formatCards } from "@/modules/game-design/domain/game-design";
-import { getInitialGameVisualKinds } from "@/modules/assets/domain/game-visual";
+import {
+  formatAssets,
+  formatCards,
+  getGameMode,
+  hasGameBoard
+} from "@/modules/game-design/domain/game-design";
+import {
+  getAvailableVisualKinds,
+  getInitialGameVisualKinds
+} from "@/modules/assets/domain/game-visual";
 import {
   getGameVersions,
   getLatestGameVersion
@@ -21,6 +29,7 @@ import { restoreGameVersionAction, saveGameDesignAction } from "./actions";
 import { generateGameVisualAction } from "./asset-actions";
 import { sendAiMessageAction } from "./ai-actions";
 import { FirstGameGenerator } from "./first-game-generator";
+import { GameWorkspacePreview } from "./game-workspace-preview";
 import { InitialVisualGenerator } from "./initial-visual-generator";
 import { PendingSubmitButton } from "../../pending-submit-button";
 
@@ -56,10 +65,6 @@ const notices: Record<string, string> = {
   restored: "Выбранная версия восстановлена как новая версия игры.",
   saved: "Новая версия игры сохранена."
 };
-
-function boardSpaces(spaces: number) {
-  return Array.from({ length: spaces }, (_, index) => index + 1);
-}
 
 async function saveDesignFromForm(formData: FormData): Promise<void> {
   "use server";
@@ -123,11 +128,15 @@ export default async function ProjectEditorPage({
   const design = gameVersion?.content;
   const projectIdea = getProjectIdea(project.description) || project.title;
   const projectBrief = getProjectBrief(project.description);
+  const gameMode = design ? getGameMode(design) : (projectBrief?.gameType ?? "board");
+  const hasBoard = design ? hasGameBoard(design) : false;
+  const visualKinds = getAvailableVisualKinds(gameMode);
   const initialVisualKinds =
     design && !design.assets?.length
       ? getInitialGameVisualKinds({
           idea: projectIdea,
-          design
+          design,
+          mode: gameMode
         })
       : [];
 
@@ -173,8 +182,9 @@ export default async function ProjectEditorPage({
           <span aria-hidden="true">✦</span>
           <h2 id="first-game-title">AI соберёт вашу первую игру</h2>
           <p>
-            Ваша идея сохранена. AI подготовит первую играбельную версию: правила, поле, карточки и
-            подходящий набор визуалов. Обычно это занимает до минуты.
+            Ваша идея сохранена. AI подготовит правила и только нужные для выбранного формата
+            компоненты — например, поле, колоду, сценарий или ресурсы. Обычно это занимает до
+            минуты.
           </p>
           <ol className="creation-steps">
             <li>Продумываем механику и состав игры</li>
@@ -189,8 +199,14 @@ export default async function ProjectEditorPage({
             <span>РАЗДЕЛЫ ИГРЫ</span>
             <a href="#editor-overview">Идея и стиль</a>
             <a href="#editor-rules">Правила</a>
-            <a href="#editor-board">Игровое поле</a>
-            <a href="#editor-cards">Карточки</a>
+            {hasBoard ? <a href="#editor-board">Игровое поле</a> : null}
+            <a href="#editor-cards">
+              {gameMode === "adventure"
+                ? "Сцены и встречи"
+                : gameMode === "party"
+                  ? "Раунды и задания"
+                  : "Карточки"}
+            </a>
             <a href="#editor-print">Печать</a>
             <a href="#ai-designer">AI‑дизайнер</a>
           </aside>
@@ -241,26 +257,28 @@ export default async function ProjectEditorPage({
                   Правила
                   <textarea name="rules" defaultValue={design.rules} maxLength={5000} required />
                 </label>
-                <div className="editor-two-columns">
-                  <label>
-                    Название поля
-                    <input
-                      name="boardTitle"
-                      defaultValue={design.board.title}
-                      maxLength={120}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Клеток на поле
-                    <input
-                      name="boardSpaces"
-                      defaultValue={design.board.spaces}
-                      inputMode="numeric"
-                      required
-                    />
-                  </label>
-                </div>
+                {hasGameBoard(design) ? (
+                  <div className="editor-two-columns">
+                    <label>
+                      Название поля
+                      <input
+                        name="boardTitle"
+                        defaultValue={design.board.title}
+                        maxLength={120}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Клеток на поле
+                      <input
+                        name="boardSpaces"
+                        defaultValue={design.board.spaces}
+                        inputMode="numeric"
+                        required
+                      />
+                    </label>
+                  </div>
+                ) : null}
                 <label>
                   Карточки
                   <textarea name="cards" defaultValue={formatCards(design.cards)} required />
@@ -295,7 +313,7 @@ export default async function ProjectEditorPage({
             <aside className="game-preview builder-preview" aria-label="Предпросмотр игры">
               <InitialVisualGenerator projectId={project.id} kinds={initialVisualKinds} />
               <span className="eyebrow">Предпросмотр</span>
-              <h2>{design.board.title}</h2>
+              <h2>{project.title}</h2>
               <p>{design.concept}</p>
               <dl className="game-meta">
                 <div>
@@ -307,33 +325,28 @@ export default async function ProjectEditorPage({
                   <dd>{design.duration}</dd>
                 </div>
               </dl>
-              <div className="board-preview" aria-label={`Поле из ${design.board.spaces} клеток`}>
-                {boardSpaces(design.board.spaces).map((space) => (
-                  <span key={space}>{space}</span>
-                ))}
-              </div>
-              <h3>Карточки</h3>
-              <div className="card-stack">
-                {design.cards.map((card) => (
-                  <article className="game-card" key={card.id}>
-                    <span>{card.category}</span>
-                    <h4>{card.title}</h4>
-                    <p>{card.text}</p>
-                  </article>
-                ))}
-              </div>
+              <GameWorkspacePreview design={design} />
               <h3>Ресурсы</h3>
               <form action={generateGameVisualFromForm} className="visual-generator">
                 <input name="projectId" type="hidden" value={project.id} />
                 <label>
                   Создать в едином стиле
                   <select defaultValue="cover" name="kind">
-                    <option value="cover">Обложка игры</option>
-                    <option value="box">Коробка</option>
-                    <option value="board">Игровое поле</option>
-                    <option value="cards">Набор карточек</option>
-                    <option value="tokens">Фишки и жетоны</option>
-                    <option value="currency">Игровая валюта</option>
+                    {visualKinds.map((kind) => (
+                      <option key={kind} value={kind}>
+                        {kind === "cover"
+                          ? "Обложка игры"
+                          : kind === "box"
+                            ? "Коробка"
+                            : kind === "board"
+                              ? "Игровое поле"
+                              : kind === "cards"
+                                ? "Набор карточек"
+                                : kind === "tokens"
+                                  ? "Фишки и жетоны"
+                                  : "Игровая валюта"}
+                      </option>
+                    ))}
                   </select>
                 </label>
                 <PendingSubmitButton className="secondary-button" pendingLabel="AI рисует визуал…">

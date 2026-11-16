@@ -26,7 +26,7 @@ import {
   getLatestOwnedGameVersion
 } from "@/modules/game-design/data/supabase-game-version-repository";
 import { getOwnedProject } from "@/modules/projects/data/supabase-project-repository";
-import { getProjectIdea } from "@/modules/projects/domain/game-brief";
+import { getProjectBrief, getProjectIdea } from "@/modules/projects/domain/game-brief";
 
 export type ImageActionResult =
   | { status: "success" }
@@ -118,7 +118,8 @@ export async function generateGameVisualAction(formData: FormData): Promise<Imag
         projectTitle: project.title,
         projectIdea,
         style: project.style,
-        design: version.content
+        design: version.content,
+        mode: getProjectBrief(project.description)?.gameType
       })
     );
     const asset = await uploadGeneratedGameVisual(database, {

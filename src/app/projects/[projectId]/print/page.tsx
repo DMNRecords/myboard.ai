@@ -9,6 +9,7 @@ import {
   getPrintSheetCount,
   validatePrintableGame
 } from "@/modules/exports/domain/print-profile";
+import { getGameMode, hasGameBoard } from "@/modules/game-design/domain/game-design";
 import { getOwnedProjectById } from "@/modules/projects/application/get-owned-projects";
 
 import { PrintButton } from "./print-button";
@@ -68,7 +69,10 @@ export default async function PrintPreviewPage({
   const query = await searchParams;
   const profile = query.profile === "large-board" ? a4LargeBoardPrintProfile : a4HomePrintProfile;
   const isLargeBoard = profile.id === "a4-large-board";
-  const printableBoard = largeBoardSpaces(gameVersion.content.board.spaces);
+  const design = gameVersion.content;
+  const board = hasGameBoard(design) ? design.board : null;
+  const printableBoard = board ? largeBoardSpaces(board.spaces) : null;
+  const gameMode = getGameMode(design);
 
   return (
     <main className="print-page">
@@ -134,11 +138,11 @@ export default async function PrintPreviewPage({
             <div className="print-version">Версия игры {gameVersion.version}</div>
           </section>
 
-          {isLargeBoard ? (
+          {board && printableBoard && isLargeBoard ? (
             boardTiles(profile).map((tile) => (
               <section className="print-sheet print-board-tile" key={`tile-${tile.index}`}>
                 <div className="print-tile-heading">
-                  <span>{gameVersion.content.board.title}</span>
+                  <span>{board.title}</span>
                   <strong>
                     Лист {tile.index + 1} из {profile.boardTiles.columns * profile.boardTiles.rows}
                   </strong>
@@ -154,11 +158,8 @@ export default async function PrintPreviewPage({
                     }}
                   >
                     {printableBoard.spaces.map((space) => (
-                      <span
-                        className={space > gameVersion.content.board.spaces ? "board-blank" : ""}
-                        key={space}
-                      >
-                        {space <= gameVersion.content.board.spaces ? space : ""}
+                      <span className={space > board.spaces ? "board-blank" : ""} key={space}>
+                        {space <= board.spaces ? space : ""}
                       </span>
                     ))}
                   </div>
@@ -168,16 +169,13 @@ export default async function PrintPreviewPage({
                 </div>
               </section>
             ))
-          ) : (
+          ) : board ? (
             <section className="print-sheet print-board-sheet">
               <span className="eyebrow">Игровое поле</span>
-              <h2>{gameVersion.content.board.title}</h2>
+              <h2>{board.title}</h2>
               <p className="print-objective">Цель: {gameVersion.content.objective}</p>
-              <div
-                className="print-board"
-                aria-label={`Поле из ${gameVersion.content.board.spaces} клеток`}
-              >
-                {spaces(gameVersion.content.board.spaces).map((space) => (
+              <div className="print-board" aria-label={`Поле из ${board.spaces} клеток`}>
+                {spaces(board.spaces).map((space) => (
                   <span key={space}>{space}</span>
                 ))}
               </div>
@@ -186,7 +184,30 @@ export default async function PrintPreviewPage({
                 <p>{gameVersion.content.rules}</p>
               </section>
             </section>
-          )}
+          ) : null}
+
+          {gameMode === "adventure" ? (
+            <section className="print-sheet print-rules">
+              <span className="eyebrow">Сценарий приключения</span>
+              <h2>{design.scenario?.title ?? project.title}</h2>
+              <p>{design.scenario?.hook ?? design.concept}</p>
+              <ol>
+                {(design.scenario?.stages ?? []).map((stage) => (
+                  <li key={stage}>{stage}</li>
+                ))}
+              </ol>
+              {design.roles?.length ? (
+                <div className="print-meta">
+                  {design.roles.map((role) => (
+                    <div key={role.name}>
+                      <dt>{role.name}</dt>
+                      <dd>{role.ability}</dd>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </section>
+          ) : null}
 
           {cardSheets(gameVersion.content.cards, profile.cardColumns * 3).map(
             (sheet, sheetIndex) => (

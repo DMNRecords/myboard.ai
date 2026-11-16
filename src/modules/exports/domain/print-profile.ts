@@ -1,4 +1,4 @@
-import type { GameDesign } from "@/modules/game-design/domain/game-design";
+import { hasGameBoard, type GameDesign } from "../../game-design/domain/game-design";
 
 export type PrintProfile = {
   id: "a4-home" | "a4-large-board";
@@ -38,12 +38,14 @@ export type PrintValidation = {
 export function validatePrintableGame(design: GameDesign): PrintValidation {
   const issues: string[] = [];
 
-  if (!design.board.title.trim()) {
-    issues.push("У поля должно быть название.");
-  }
+  if (hasGameBoard(design)) {
+    if (!design.board.title.trim()) {
+      issues.push("У поля должно быть название.");
+    }
 
-  if (design.board.spaces < 8 || design.board.spaces > 60) {
-    issues.push("Поле должно содержать от 8 до 60 клеток.");
+    if (design.board.spaces < 8 || design.board.spaces > 60) {
+      issues.push("Поле должно содержать от 8 до 60 клеток.");
+    }
   }
 
   if (design.cards.length === 0) {
@@ -62,6 +64,8 @@ export function validatePrintableGame(design: GameDesign): PrintValidation {
 
 export function getPrintSheetCount(design: GameDesign, profile = a4HomePrintProfile): number {
   const cardsPerSheet = profile.cardColumns * 3;
-  const boardSheets = profile.boardTiles.columns * profile.boardTiles.rows;
+  const boardSheets = hasGameBoard(design)
+    ? profile.boardTiles.columns * profile.boardTiles.rows
+    : 0;
   return 1 + boardSheets + Math.ceil(design.cards.length / cardsPerSheet);
 }

@@ -15,7 +15,7 @@ import { getPdfExportEntitlement } from "../../src/modules/exports/domain/export
 
 describe("game design domain", () => {
   it("provides an original Temirtau template with a board and cards", () => {
-    expect(temirtauGameTemplate.board.spaces).toBe(24);
+    expect(temirtauGameTemplate.board?.spaces).toBe(24);
     expect(temirtauGameTemplate.cards).toHaveLength(3);
     expect(temirtauGameTemplate.concept).toContain("Темиртау");
   });
@@ -34,7 +34,7 @@ describe("game design domain", () => {
         assets: "Панорама | https://example.com/panorama.jpg | Обложка игры"
       })
     ).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       board: { title: "Маршрут", spaces: 18 },
       cards: [
         { id: "card-1", category: "event" },

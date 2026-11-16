@@ -26,4 +26,50 @@ describe("first game generation", () => {
     expect(design.board).toEqual({ title: "Ночной маршрут", spaces: 24 });
     expect(design.cards).toHaveLength(2);
   });
+
+  it("creates a card game without an unused board", () => {
+    const design = parseGeneratedGameDesign(
+      `{
+        "mode": "cards",
+        "concept": "Быстрая игра с колодой",
+        "objective": "Собрать три комбинации",
+        "playerCount": "2–4 игрока",
+        "duration": "20 минут",
+        "rules": "Берите карты и разыгрывайте эффекты.",
+        "cards": [
+          { "title": "Импульс", "text": "Возьмите ещё одну карту." },
+          { "title": "Обмен", "text": "Поменяйтесь картой с игроком." }
+        ],
+        "decks": [{
+          "title": "Колода действий",
+          "purpose": "Комбинации и события",
+          "cards": [{ "title": "Импульс", "text": "Возьмите ещё одну карту." }]
+        }]
+      }`
+    );
+
+    expect(design.mode).toBe("cards");
+    expect(design.board).toBeUndefined();
+    expect(design.decks?.[0]?.title).toBe("Колода действий");
+  });
+
+  it("keeps adventure scenario and roles from the AI response", () => {
+    const design = parseGeneratedGameDesign(
+      `{
+        "mode": "adventure",
+        "concept": "Командный квест",
+        "objective": "Пройти три сцены",
+        "playerCount": "3–5 игроков",
+        "duration": "45 минут",
+        "rules": "Выбирайте действие и решайте испытания.",
+        "cards": [{ "title": "След", "text": "Откройте следующую сцену." }],
+        "scenario": { "title": "Потерянный маяк", "hook": "Команда ищет сигнал.", "stages": ["Путь", "Испытание", "Финал"] },
+        "roles": [{ "name": "Следопыт", "goal": "Найти путь", "ability": "Один раз меняет событие" }]
+      }`
+    );
+
+    expect(design.mode).toBe("adventure");
+    expect(design.scenario?.stages).toHaveLength(3);
+    expect(design.roles?.[0]?.name).toBe("Следопыт");
+  });
 });

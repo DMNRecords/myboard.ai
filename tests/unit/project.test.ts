@@ -8,6 +8,11 @@ import {
   normalizeProjectIdea,
   normalizeProjectTitle
 } from "../../src/modules/projects/domain/project";
+import {
+  createProjectDescription,
+  getProjectBrief,
+  getProjectIdea
+} from "../../src/modules/projects/domain/game-brief";
 
 describe("project domain", () => {
   const createdAt = new Date("2026-11-12T10:00:00.000Z");
@@ -74,6 +79,21 @@ describe("project domain", () => {
       archivedAt,
       updatedAt: archivedAt,
       version: 1
+    });
+  });
+
+  it("keeps the visual creator choices with the idea without exposing them as prose", () => {
+    const description = createProjectDescription("Игра о городе", {
+      gameType: "strategy",
+      players: "3–6",
+      audience: "friends"
+    });
+
+    expect(getProjectIdea(description)).toBe("Игра о городе");
+    expect(getProjectBrief(description)).toEqual({
+      gameType: "strategy",
+      players: "3–6",
+      audience: "friends"
     });
   });
 });
